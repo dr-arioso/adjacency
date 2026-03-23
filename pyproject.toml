@@ -1,0 +1,51 @@
+[project]
+name = "adjacency"
+version = "0.1.0"
+description = "Reusable interaction and language-study framework"
+requires-python = ">=3.12"
+dependencies = [
+    "turnturnturn @ file:///home/arioso/projects/turnturnturn",
+    "pyyaml",
+    "anthropic",
+]
+# Note: all file:// paths use /home/arioso/... (absolute) to match the
+# convention in traceprobe/pyproject.toml. Do not use ~/... here.
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.23",
+    "pre-commit",
+    "ruff>=0.2",
+    "black>=24.0",
+    "isort>=6.0",
+    "mypy>=1.0",
+    "interrogate>=1.7",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+
+[tool.interrogate]
+ignore-init-method = true
+ignore-init-module = true
+ignore-magic = true
+fail-under = 10
+exclude = ["tests", "docs"]
+
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
