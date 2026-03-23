@@ -37,7 +37,7 @@ class DictResolver:
         """Return the Participant for role_name. Raises KeyError if not found."""
         if role_name not in self._roles:
             raise KeyError(f"No participant configured for role {role_name!r}. "
-                           f"Available: {set(self._roles)}")
+                           f"Available: {sorted(self._roles)}")
         return self._roles[role_name]
 
     def supports(self, role_name: str) -> bool:
