@@ -5,6 +5,8 @@ from typing import Any
 
 
 class Backend(abc.ABC):
+    """LLM provider adapter — sends messages to a model and returns the response text."""
+
     @abc.abstractmethod
     async def complete(
         self,
