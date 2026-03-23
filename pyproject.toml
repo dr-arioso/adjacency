@@ -36,6 +36,13 @@ strict = true
 [tool.black]
 line-length = 88
 
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "C90"]
+ignore = ["E501"]
+
 [tool.isort]
 profile = "black"
 
@@ -43,7 +50,7 @@ profile = "black"
 ignore-init-method = true
 ignore-init-module = true
 ignore-magic = true
-fail-under = 10
+fail-under = 80
 exclude = ["tests", "docs"]
 
 [build-system]
