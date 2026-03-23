@@ -8,6 +8,7 @@ tomorrow may be config-driven tooling composing the same call from declarations.
 assemble_session() accepts dependencies, assembles a Session, and returns it.
 It does not open files, register profiles, or touch hub bootstrap.
 """
+
 from __future__ import annotations
 
 from typing import Any, Callable

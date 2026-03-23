@@ -1,11 +1,10 @@
 # tests/adjacency/test_events.py
 from uuid import uuid4
+
 from adjacency.events import (
-    StimulusPayload, StimulusEvent,
-    StimulusResponsePayload, StimulusResponseEvent,
-    ReviewerRequestPayload, ReviewerRequestEvent,
-    ReviewerResponsePayload, ReviewerResponseEvent,
-    ProtocolCompletedPayload, ProtocolCompletedEvent,
+    ProtocolCompletedPayload,
+    ReviewerResponsePayload,
+    StimulusPayload,
 )
 
 
@@ -33,6 +32,7 @@ def test_reviewer_response_payload_valid_values():
 
 def test_reviewer_response_payload_rejects_invalid():
     import pytest
+
     with pytest.raises(ValueError):
         ReviewerResponsePayload(
             question_key="locus_visible",

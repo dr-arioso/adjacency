@@ -1,16 +1,14 @@
 """Tests for AdjacencyPurpose lifecycle anchor."""
-import pytest
+
 from uuid import uuid4
 
-from turnturnturn.hub import TTT
-from turnturnturn.persistence import InMemoryPersistencePurpose
+import pytest
 from turnturnturn.events import HubEventType
 
 from adjacency.events import (
-    register_all,
-    PROTOCOL_COMPLETED_EVENT,
-    ProtocolCompletedPayload,
     ProtocolCompletedEvent,
+    ProtocolCompletedPayload,
+    register_all,
 )
 from adjacency.purposes.base import AdjacencyPurpose
 
@@ -42,7 +40,9 @@ async def test_adjacency_purpose_closes_on_protocol_completed(ttt):
     """AdjacencyPurpose calls ttt.close() when it receives ProtocolCompletedEvent."""
     persister = ttt.persistence_purpose
     content = {"dialog": "hello", "trace_pairs": []}
-    purpose = AdjacencyPurpose(hub=ttt, content_profile="adjacency_test", content=content)
+    purpose = AdjacencyPurpose(
+        hub=ttt, content_profile="adjacency_test", content=content
+    )
     await ttt.start_purpose(purpose)
 
     completion = ProtocolCompletedEvent(

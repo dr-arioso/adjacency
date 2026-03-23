@@ -1,4 +1,5 @@
 """Tests for assemble_session() generic session factory."""
+
 import pytest
 
 from adjacency.participants.resolver import DictResolver
@@ -32,10 +33,12 @@ completion:
 
 
 def _resolver() -> DictResolver:
-    return DictResolver({
-        "subject": ScriptedParticipant(responses=["response"]),
-        "reviewer": ScriptedParticipant(responses=["yes"]),
-    })
+    return DictResolver(
+        {
+            "subject": ScriptedParticipant(responses=["response"]),
+            "reviewer": ScriptedParticipant(responses=["yes"]),
+        }
+    )
 
 
 def test_assemble_session_returns_session(ttt):
@@ -52,15 +55,17 @@ def test_assemble_session_returns_session(ttt):
 
 def test_assemble_session_uses_injected_moderator_factory(ttt):
     """Injected moderator_factory is called with (hub, protocol, adjacency_purpose)."""
-    from adjacency.purposes.moderator import SocraticElicitationPurpose
     from adjacency.purposes.base import AdjacencyPurpose
+    from adjacency.purposes.moderator import SocraticElicitationPurpose
 
     protocol = load_protocol(MINIMAL_PROTOCOL)
     factory_calls: list[tuple] = []
 
     def spy_factory(hub, proto, adj_purpose):
         factory_calls.append((hub, proto, adj_purpose))
-        return SocraticElicitationPurpose(hub=hub, protocol=proto, adjacency_purpose=adj_purpose)
+        return SocraticElicitationPurpose(
+            hub=hub, protocol=proto, adjacency_purpose=adj_purpose
+        )
 
     assemble_session(
         hub=ttt,

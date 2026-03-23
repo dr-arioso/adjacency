@@ -1,7 +1,8 @@
 """ParticipantResolver protocol and DictResolver implementation."""
+
 from __future__ import annotations
 
-from typing import runtime_checkable, Protocol
+from typing import Protocol, runtime_checkable
 
 from adjacency.participants.base import Participant
 
@@ -36,8 +37,10 @@ class DictResolver:
     def resolve(self, role_name: str) -> Participant:
         """Return the Participant for role_name. Raises KeyError if not found."""
         if role_name not in self._roles:
-            raise KeyError(f"No participant configured for role {role_name!r}. "
-                           f"Available: {sorted(self._roles)}")
+            raise KeyError(
+                f"No participant configured for role {role_name!r}. "
+                f"Available: {sorted(self._roles)}"
+            )
         return self._roles[role_name]
 
     def supports(self, role_name: str) -> bool:

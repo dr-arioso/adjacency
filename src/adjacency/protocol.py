@@ -4,10 +4,11 @@ Provides parsing and validation for protocol YAML files that define the
 socratic escalation ladder, gestalt questions, control baseline, and
 role-specific framing for a study session.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+
 import yaml  # type: ignore[import-untyped]
 
 
@@ -183,12 +184,14 @@ def load_protocol(yaml_text: str) -> Protocol:
                 )
         declared_keys.add(key)
         variants = step_raw.get("subject_stimulus", {}).get("variants", [])
-        ladder_steps.append(LadderStep(
-            key=key,
-            subject_stimulus_variants=variants,
-            reviewer_question=step_raw["reviewer_question"],
-            requires=requires,
-        ))
+        ladder_steps.append(
+            LadderStep(
+                key=key,
+                subject_stimulus_variants=variants,
+                reviewer_question=step_raw["reviewer_question"],
+                requires=requires,
+            )
+        )
 
     # Gestalt
     gestalt_steps = [

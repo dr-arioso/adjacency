@@ -1,7 +1,9 @@
 """ScriptedParticipant — deterministic responses from a list. For testing."""
+
 from __future__ import annotations
 
 from typing import Any
+
 from adjacency.participants.base import Participant
 
 
@@ -32,7 +34,9 @@ class ScriptedParticipant(Participant):
         """Return the next scripted response, advancing the internal index."""
         return self._next()
 
-    async def assess(self, messages: list[dict[str, Any]], question_key: str, canonical: str | None) -> str:
+    async def assess(
+        self, messages: list[dict[str, Any]], question_key: str, canonical: str | None
+    ) -> str:
         """Return the next scripted verdict (yes/no/escalate); defaults to escalate if value is unrecognized."""
         val = self._next()
         return val if val in ("yes", "no", "escalate") else "escalate"

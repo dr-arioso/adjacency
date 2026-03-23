@@ -1,6 +1,7 @@
 import pytest
-from adjacency.participants.llm import LLMParticipant
+
 from adjacency.backends.base import Backend
+from adjacency.participants.llm import LLMParticipant
 
 
 class MockBackend(Backend):
@@ -18,7 +19,9 @@ class MockBackend(Backend):
 @pytest.mark.asyncio
 async def test_llm_participant_respond_passes_messages_to_backend():
     backend = MockBackend("The LLM collapsed the temporal scope.")
-    participant = LLMParticipant(backend=backend, system_prompt="You are a careful assistant.")
+    participant = LLMParticipant(
+        backend=backend, system_prompt="You are a careful assistant."
+    )
 
     response = await participant.respond(
         messages=[{"role": "user", "content": "Do you notice anything?"}],

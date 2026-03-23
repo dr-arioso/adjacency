@@ -1,18 +1,23 @@
 """Role-based ParticipantPurpose subclasses."""
+
 from __future__ import annotations
 
-from uuid import UUID, uuid4
 from typing import Any, Literal, cast
+from uuid import UUID, uuid4
 
 from turnturnturn.base_purpose import BasePurpose  # type: ignore[import-untyped]
 from turnturnturn.events import HubEvent  # type: ignore[import-untyped]
 from turnturnturn.hub import TTT  # type: ignore[import-untyped]
 
 from adjacency.events import (
-    STIMULUS_EVENT, STIMULUS_RESPONSE_EVENT,
-    REVIEWER_REQUEST_EVENT, REVIEWER_RESPONSE_EVENT,
-    StimulusResponseEvent, ReviewerResponseEvent,
-    StimulusResponsePayload, ReviewerResponsePayload,
+    REVIEWER_REQUEST_EVENT,
+    REVIEWER_RESPONSE_EVENT,
+    STIMULUS_EVENT,
+    STIMULUS_RESPONSE_EVENT,
+    ReviewerResponseEvent,
+    ReviewerResponsePayload,
+    StimulusResponseEvent,
+    StimulusResponsePayload,
 )
 from adjacency.participants.base import Participant
 

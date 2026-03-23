@@ -3,12 +3,13 @@
 All types must be registered with TTT.register_event_type() before use.
 Call adjacency.events.register_all() at session startup.
 """
+
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass, field
 from typing import Any, Literal
 from uuid import UUID, uuid4
-import time
 
 from turnturnturn.hub import TTT  # type: ignore[import-untyped]
 
@@ -47,6 +48,7 @@ def register_all() -> None:
 # ---------------------------------------------------------------------------
 # Payload dataclasses
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class StimulusPayload:
@@ -203,6 +205,7 @@ class ProtocolCompletedPayload:
 # Event dataclasses (implement PurposeEventProtocol)
 # ---------------------------------------------------------------------------
 
+
 def _make_event_class(event_type_const: str) -> type:
     """Factory for creating event dataclasses implementing PurposeEventProtocol.
 
@@ -215,6 +218,7 @@ def _make_event_class(event_type_const: str) -> type:
     Returns:
         A frozen dataclass type with event_type set to the constant.
     """
+
     @dataclass(frozen=True)
     class _Event:
         """Base event class with standard protocol event fields."""

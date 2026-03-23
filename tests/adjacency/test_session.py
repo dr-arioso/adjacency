@@ -1,11 +1,12 @@
 """Tests for AdjacencyLibrarian and Session (via assemble_session)."""
+
 import pytest
+
 from adjacency.librarian import AdjacencyLibrarian
 from adjacency.participants.resolver import DictResolver
 from adjacency.participants.scripted import ScriptedParticipant
 from adjacency.protocol import load_protocol
 from adjacency.session_factory import assemble_session
-
 
 MINIMAL_PROTOCOL = """
 type: socratic_elicitation
@@ -43,10 +44,12 @@ def test_adjacency_librarian_participant_instructions():
 async def test_session_starts_and_all_purposes_registered(ttt):
     """assemble_session + start() registers at least 3 Purposes with the hub."""
     protocol = load_protocol(MINIMAL_PROTOCOL)
-    resolver = DictResolver({
-        "subject": ScriptedParticipant(responses=["I notice a tense mismatch."]),
-        "reviewer": ScriptedParticipant(responses=["yes"]),
-    })
+    resolver = DictResolver(
+        {
+            "subject": ScriptedParticipant(responses=["I notice a tense mismatch."]),
+            "reviewer": ScriptedParticipant(responses=["yes"]),
+        }
+    )
     session = assemble_session(
         hub=ttt,
         content={},

@@ -1,4 +1,5 @@
 """Participant ABC — response generation only; no hub awareness."""
+
 from __future__ import annotations
 
 import abc
@@ -13,5 +14,7 @@ class Participant(abc.ABC):
         """Generate a response given the current messages list."""
 
     @abc.abstractmethod
-    async def assess(self, messages: list[dict[str, Any]], question_key: str, canonical: str | None) -> str:
+    async def assess(
+        self, messages: list[dict[str, Any]], question_key: str, canonical: str | None
+    ) -> str:
         """Score a subject response. Returns 'yes', 'no', or 'escalate'."""

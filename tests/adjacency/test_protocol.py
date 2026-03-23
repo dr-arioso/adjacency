@@ -1,9 +1,11 @@
-import pytest
 import textwrap
-from adjacency.protocol import Protocol, load_protocol
 
+import pytest
 
-MINIMAL_PROTOCOL_YAML = textwrap.dedent("""
+from adjacency.protocol import load_protocol
+
+MINIMAL_PROTOCOL_YAML = textwrap.dedent(
+    """
     type: socratic_elicitation
 
     framing:
@@ -33,7 +35,8 @@ MINIMAL_PROTOCOL_YAML = textwrap.dedent("""
 
     completion:
       when: locus_identified
-""")
+"""
+)
 
 
 def test_protocol_loads_ladder_keys():
@@ -54,7 +57,9 @@ def test_protocol_completion_key():
 
 def test_protocol_requires_ordering_violation_raises():
     """locus_identified requires locus_visible but appears before it — ordering violation."""
-    import yaml, io
+
+    import yaml
+
     raw = yaml.safe_load(MINIMAL_PROTOCOL_YAML)
     # Swap the ladder order: locus_identified first, locus_visible second
     raw["ladder"] = [
@@ -62,15 +67,15 @@ def test_protocol_requires_ordering_violation_raises():
             "key": "locus_identified",
             "requires": ["locus_visible"],
             "subject_stimulus": {"variants": ["What changed?"]},
-            "reviewer_question": "Correct locus?"
+            "reviewer_question": "Correct locus?",
         },
         {
             "key": "locus_visible",
             "subject_stimulus": {"variants": ["Notice anything?"]},
-            "reviewer_question": "Found anything?"
+            "reviewer_question": "Found anything?",
         },
     ]
-    import io as _io
+
     bad_yaml = yaml.dump(raw)
     with pytest.raises(ValueError, match="not yet declared"):
         load_protocol(bad_yaml)
@@ -79,6 +84,7 @@ def test_protocol_requires_ordering_violation_raises():
 def test_protocol_requires_unknown_key_raises():
     """requires references a key that doesn't exist in the ladder."""
     import yaml
+
     raw = yaml.safe_load(MINIMAL_PROTOCOL_YAML)
     raw["ladder"][-1]["requires"] = ["nonexistent_key"]
     bad_yaml = yaml.dump(raw)

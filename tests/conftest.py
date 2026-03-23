@@ -2,10 +2,16 @@
 
 No traceprobe imports here. Adjacency tests must run with traceprobe absent.
 """
+
 import pytest
 from turnturnturn.hub import TTT  # type: ignore[import-untyped]
-from turnturnturn.persistence import InMemoryPersistencePurpose  # type: ignore[import-untyped]
-from turnturnturn.profile import Profile, ProfileRegistry  # type: ignore[import-untyped]
+from turnturnturn.persistence import (
+    InMemoryPersistencePurpose,  # type: ignore[import-untyped]
+)
+from turnturnturn.profile import (  # type: ignore[import-untyped]
+    Profile,
+    ProfileRegistry,
+)
 
 # Register a minimal permissive profile for adjacency tests.
 # Empty fields = accepts any content dict without validation.
@@ -21,6 +27,7 @@ def ttt() -> TTT:
     The adjacency_test profile is registered at module level above.
     """
     import warnings
+
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", UserWarning)
         return TTT.start(InMemoryPersistencePurpose())

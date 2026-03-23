@@ -3,6 +3,7 @@
 Provides a thin wrapper around the TTT librarian with additional
 role-keyed instruction lookup that the TTT layer has no concept of.
 """
+
 from __future__ import annotations
 
 from typing import Any

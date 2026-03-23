@@ -1,4 +1,5 @@
 """Session — holds assembled Purposes and registers them with the hub."""
+
 from __future__ import annotations
 
 from turnturnturn.hub import TTT  # type: ignore[import-untyped]
@@ -6,7 +7,7 @@ from turnturnturn.hub import TTT  # type: ignore[import-untyped]
 from adjacency.events import register_all
 from adjacency.purposes.base import AdjacencyPurpose
 from adjacency.purposes.moderator import SocraticElicitationPurpose
-from adjacency.purposes.participant import SubjectPurpose, ReviewerPurpose
+from adjacency.purposes.participant import ReviewerPurpose, SubjectPurpose
 
 
 class Session:

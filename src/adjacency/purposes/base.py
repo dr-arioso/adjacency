@@ -5,6 +5,7 @@ Responsibilities:
     the exhibit CTO.
   - On ProtocolCompletedEvent: calls hub.close() to end the session.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -58,9 +59,9 @@ class AdjacencyPurpose(BasePurpose):  # type: ignore[misc]
     async def _on_own_purpose_started(self) -> None:
         """Called when this purpose's own PURPOSE_STARTED fires; starts the TTT turn."""
         token = self.token
-        assert token is not None, (
-            "AdjacencyPurpose._on_own_purpose_started called before token was assigned"
-        )
+        assert (
+            token is not None
+        ), "AdjacencyPurpose._on_own_purpose_started called before token was assigned"
         self.turn_id = await self._hub.start_turn(
             self._content_profile,
             self._content,

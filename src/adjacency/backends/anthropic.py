@@ -1,7 +1,11 @@
 """AnthropicBackend — wraps the anthropic SDK."""
+
 from __future__ import annotations
+
 from typing import Any
+
 import anthropic
+
 from adjacency.backends.base import Backend
 
 

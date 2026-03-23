@@ -1,16 +1,21 @@
 """Tests for SubjectPurpose, ReviewerPurpose, and ParticipantPurpose base."""
-import pytest
-from uuid import uuid4
-import time
 
-from adjacency.purposes.participant import SubjectPurpose, ReviewerPurpose
+import time
+from uuid import uuid4
+
+import pytest
+from turnturnturn.events import HubEvent
+
 from adjacency.events import (
-    STIMULUS_EVENT, STIMULUS_RESPONSE_EVENT,
-    REVIEWER_REQUEST_EVENT, REVIEWER_RESPONSE_EVENT,
-    StimulusPayload, ReviewerRequestPayload,
+    REVIEWER_REQUEST_EVENT,
+    REVIEWER_RESPONSE_EVENT,
+    STIMULUS_EVENT,
+    STIMULUS_RESPONSE_EVENT,
+    ReviewerRequestPayload,
+    StimulusPayload,
     register_all,
 )
-from turnturnturn.events import HubEvent
+from adjacency.purposes.participant import ReviewerPurpose, SubjectPurpose
 
 
 def make_hub_event(event_type, payload):
@@ -36,6 +41,7 @@ def setup_events():
 async def test_subject_purpose_calls_participant_on_stimulus(ttt):
     """SubjectPurpose delegates to participant.respond() when StimulusEvent received."""
     from adjacency.participants.scripted import ScriptedParticipant
+
     participant = ScriptedParticipant(responses=["The LLM mishandled the tense."])
     subject = SubjectPurpose(hub=ttt, participant=participant)
     await ttt.start_purpose(subject)
@@ -55,6 +61,7 @@ async def test_subject_purpose_calls_participant_on_stimulus(ttt):
 async def test_reviewer_purpose_calls_participant_assess_on_request(ttt):
     """ReviewerPurpose delegates to participant.assess() when ReviewerRequestEvent received."""
     from adjacency.participants.scripted import ScriptedParticipant
+
     participant = ScriptedParticipant(responses=["yes"])
     reviewer = ReviewerPurpose(hub=ttt, participant=participant)
     await ttt.start_purpose(reviewer)

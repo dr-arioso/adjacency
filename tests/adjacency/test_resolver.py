@@ -1,6 +1,8 @@
 """Tests for ParticipantResolver protocol and DictResolver implementation."""
-import pytest
+
 from unittest.mock import MagicMock
+
+import pytest
 
 from adjacency.participants.base import Participant
 from adjacency.participants.resolver import DictResolver, ParticipantResolver
@@ -29,7 +31,9 @@ def test_dict_resolver_supports_known_role():
 
 
 def test_dict_resolver_available_roles():
-    resolver = DictResolver({"subject": _mock_participant(), "reviewer": _mock_participant()})
+    resolver = DictResolver(
+        {"subject": _mock_participant(), "reviewer": _mock_participant()}
+    )
     assert resolver.available_roles() == frozenset({"subject", "reviewer"})
 
 

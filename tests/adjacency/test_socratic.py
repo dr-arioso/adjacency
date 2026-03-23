@@ -1,10 +1,11 @@
 # tests/adjacency/test_socratic.py
-import pytest
 from uuid import uuid4
-from adjacency.protocol import load_protocol, LadderStep, Escalation, Protocol, Framing
-from adjacency.purposes.moderator import LadderState
+
+import pytest
 from turnturnturn.base_purpose import BasePurpose  # type: ignore[import-untyped]
 
+from adjacency.protocol import Escalation, LadderStep, load_protocol
+from adjacency.purposes.moderator import LadderState
 
 # Used by hub-integrated tests
 MINIMAL_PROTOCOL = """
@@ -28,12 +29,23 @@ completion:
 """
 
 SIMPLE_LADDER = [
-    LadderStep("locus_visible", ["Do you notice?", "Notice asymmetry?", "Assume wrong."],
-               "Did subject find anything?"),
-    LadderStep("locus_identified", ["What changed?", "What was lost?"],
-               "Correct locus?", requires=["locus_visible"]),
-    LadderStep("mechanism_named", ["What caused this?"],
-               "Complete account?", requires=["locus_identified"]),
+    LadderStep(
+        "locus_visible",
+        ["Do you notice?", "Notice asymmetry?", "Assume wrong."],
+        "Did subject find anything?",
+    ),
+    LadderStep(
+        "locus_identified",
+        ["What changed?", "What was lost?"],
+        "Correct locus?",
+        requires=["locus_visible"],
+    ),
+    LadderStep(
+        "mechanism_named",
+        ["What caused this?"],
+        "Complete account?",
+        requires=["locus_identified"],
+    ),
 ]
 ESCALATION = Escalation(max_attempts_per_state=3, on_exhaustion="advance")
 
@@ -56,7 +68,7 @@ def test_ladder_state_escalates_on_no():
     state = LadderState(ladder=SIMPLE_LADDER, escalation=ESCALATION)
     state.record_verdict("no")
     assert state.current_key == "locus_visible"  # still on same step
-    assert state.current_variant_index == 1      # next variant
+    assert state.current_variant_index == 1  # next variant
 
 
 def test_ladder_state_advances_on_exhaustion():
@@ -85,11 +97,12 @@ def test_ladder_state_escalate_verdict_stays_on_step():
 @pytest.mark.asyncio
 async def test_socratic_elicitation_runs_one_pair_to_completion(ttt):
     """Full run: CTO started -> SocraticElicitation drives ladder -> ProtocolCompletedEvent emitted."""
-    from adjacency.events import register_all, PROTOCOL_COMPLETED_EVENT
+    from adjacency.events import PROTOCOL_COMPLETED_EVENT, register_all
+    from adjacency.participants.scripted import ScriptedParticipant
     from adjacency.purposes.base import AdjacencyPurpose
     from adjacency.purposes.moderator import SocraticElicitationPurpose
-    from adjacency.purposes.participant import SubjectPurpose, ReviewerPurpose
-    from adjacency.participants.scripted import ScriptedParticipant
+    from adjacency.purposes.participant import ReviewerPurpose, SubjectPurpose
+
     register_all()
 
     subject_p = ScriptedParticipant(responses=["I notice a tense issue."] * 10)
@@ -107,8 +120,11 @@ async def test_socratic_elicitation_runs_one_pair_to_completion(ttt):
             if event.event_type == PROTOCOL_COMPLETED_EVENT:
                 completed.append("done")
 
-    adjacency_p = AdjacencyPurpose(hub=ttt, content_profile="adjacency_test",
-                                    content={"dialog": "Human: hello\nLLM: hi", "trace_pairs": []})
+    adjacency_p = AdjacencyPurpose(
+        hub=ttt,
+        content_profile="adjacency_test",
+        content={"dialog": "Human: hello\nLLM: hi", "trace_pairs": []},
+    )
     subject = SubjectPurpose(hub=ttt, participant=subject_p)
     reviewer = ReviewerPurpose(hub=ttt, participant=reviewer_p)
     socratic = SocraticElicitationPurpose(

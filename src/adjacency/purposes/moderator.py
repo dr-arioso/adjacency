@@ -1,11 +1,26 @@
 """SocraticElicitationPurpose — ladder driver for ModeratedMesh sessions."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any
 from uuid import UUID, uuid4
 
-from adjacency.protocol import LadderStep, Escalation
+from turnturnturn.base_purpose import BasePurpose  # type: ignore[import-untyped]
+from turnturnturn.events import HubEvent, HubEventType  # type: ignore[import-untyped]
+from turnturnturn.hub import TTT  # type: ignore[import-untyped]
+
+from adjacency.events import (
+    REVIEWER_RESPONSE_EVENT,
+    STIMULUS_RESPONSE_EVENT,
+    ProtocolCompletedEvent,
+    ProtocolCompletedPayload,
+    ReviewerRequestEvent,
+    ReviewerRequestPayload,
+    StimulusEvent,
+    StimulusPayload,
+)
+from adjacency.protocol import Escalation, LadderStep, Protocol
 
 
 @dataclass
@@ -80,24 +95,6 @@ class LadderState:
             # 'terminal' case: leave state as-is (caller ends session)
 
 
-# ---------------------------------------------------------------------------
-# SocraticElicitationPurpose
-# ---------------------------------------------------------------------------
-
-from turnturnturn.base_purpose import BasePurpose  # type: ignore[import-untyped]
-from turnturnturn.events import HubEvent, HubEventType  # type: ignore[import-untyped]
-from turnturnturn.hub import TTT  # type: ignore[import-untyped]
-
-from adjacency.events import (
-    STIMULUS_EVENT, STIMULUS_RESPONSE_EVENT,
-    REVIEWER_REQUEST_EVENT, REVIEWER_RESPONSE_EVENT,
-    PROTOCOL_COMPLETED_EVENT,
-    StimulusEvent, ReviewerRequestEvent, ProtocolCompletedEvent,
-    StimulusPayload, ReviewerRequestPayload, ProtocolCompletedPayload,
-)
-from adjacency.protocol import Protocol
-
-
 class SocraticElicitationPurpose(BasePurpose):  # type: ignore[misc]
     """Drives the Socratic elicitation ladder for a study session.
 
@@ -167,7 +164,9 @@ class SocraticElicitationPurpose(BasePurpose):  # type: ignore[misc]
         variant = self._ladder_state.current_stimulus_variant()
         assert variant is not None, "_send_next_stimulus called when ladder is complete"
         current_key = self._ladder_state.current_key
-        assert current_key is not None, "_send_next_stimulus called when ladder is complete"
+        assert (
+            current_key is not None
+        ), "_send_next_stimulus called when ladder is complete"
         prompt = self._interpolate(variant)
         self._messages.append({"role": "user", "content": prompt})
         event = StimulusEvent(
@@ -250,8 +249,11 @@ class SocraticElicitationPurpose(BasePurpose):  # type: ignore[misc]
     async def _emit_completed(self) -> None:
         """Emit ProtocolCompletedEvent to signal end of the study session."""
         state = self._ladder_state
-        final_key = (state.resolved_keys[-1] if state and state.resolved_keys
-                     else self._protocol.completion_key)
+        final_key = (
+            state.resolved_keys[-1]
+            if state and state.resolved_keys
+            else self._protocol.completion_key
+        )
         event = ProtocolCompletedEvent(
             purpose_id=self.id,
             purpose_name=self.name,

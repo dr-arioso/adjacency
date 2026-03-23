@@ -1,6 +1,9 @@
 """LLMParticipant — delegates respond() and assess() to a Backend."""
+
 from __future__ import annotations
+
 from typing import Any
+
 from adjacency.backends.base import Backend
 from adjacency.participants.base import Participant
 
@@ -29,7 +32,9 @@ class LLMParticipant(Participant):
             system=self._system_prompt,
         )
 
-    async def assess(self, messages: list[dict[str, Any]], question_key: str, canonical: str | None) -> str:
+    async def assess(
+        self, messages: list[dict[str, Any]], question_key: str, canonical: str | None
+    ) -> str:
         """LLM-as-judge: minimal implementation. Parses first word of response."""
         user_messages = [m for m in messages if m.get("role") != "system"]
         judge_prompt = (
@@ -39,5 +44,7 @@ class LLMParticipant(Participant):
         response = await self._backend.complete(
             user_messages + [{"role": "user", "content": judge_prompt}],
         )
-        first_word = response.strip().lower().split()[0] if response.strip() else "escalate"
+        first_word = (
+            response.strip().lower().split()[0] if response.strip() else "escalate"
+        )
         return first_word if first_word in ("yes", "no", "escalate") else "escalate"
