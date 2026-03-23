@@ -1,12 +1,14 @@
 """Tests for assemble_session() generic session factory."""
 import pytest
-from unittest.mock import AsyncMock, MagicMock
 
 from adjacency.participants.resolver import DictResolver
 from adjacency.participants.scripted import ScriptedParticipant
 from adjacency.protocol import load_protocol
 from adjacency.session import Session
 from adjacency.session_factory import assemble_session
+
+# Must match the profile_id registered in tests/conftest.py
+_TEST_PROFILE = "adjacency_test"
 
 MINIMAL_PROTOCOL = """
 type: socratic_elicitation
@@ -40,8 +42,8 @@ def test_assemble_session_returns_session(ttt):
     protocol = load_protocol(MINIMAL_PROTOCOL)
     session = assemble_session(
         hub=ttt,
-        content={"dialog": "test", "trace_pairs": []},
-        content_profile="test_profile",
+        content={},
+        content_profile=_TEST_PROFILE,
         protocol=protocol,
         participant_resolver=_resolver(),
     )
@@ -78,15 +80,11 @@ def test_assemble_session_uses_injected_moderator_factory(ttt):
 @pytest.mark.asyncio
 async def test_assemble_session_and_start_registers_all_purposes(ttt):
     """End-to-end: assemble + start registers at least 4 Purposes."""
-    from turnturnturn.profile import Profile, ProfileRegistry  # type: ignore[import-untyped]
-
-    ProfileRegistry.register(Profile(profile_id="test_profile", fields={}))
-
     protocol = load_protocol(MINIMAL_PROTOCOL)
     session = assemble_session(
         hub=ttt,
-        content={"dialog": "test", "trace_pairs": []},
-        content_profile="test_profile",
+        content={},
+        content_profile=_TEST_PROFILE,
         protocol=protocol,
         participant_resolver=_resolver(),
     )
