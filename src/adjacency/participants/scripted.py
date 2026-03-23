@@ -9,6 +9,10 @@ class ScriptedParticipant(Participant):
     """Returns responses in order from a fixed list. If exhausted, repeats the last one.
 
     Intended for deterministic testing of session flow without a live LLM.
+
+    Args:
+        responses: Ordered list of string responses to return. Must be non-empty.
+            When exhausted, the last response is repeated indefinitely.
     """
 
     def __init__(self, responses: list[str]) -> None:

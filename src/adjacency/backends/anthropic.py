@@ -10,6 +10,11 @@ class AnthropicBackend(Backend):
 
     Uses the async Anthropic client. Pass model and any additional
     kwargs accepted by anthropic.AsyncAnthropic at construction time.
+
+    Args:
+        model: The Anthropic model identifier. Defaults to ``claude-opus-4-6``.
+        **kwargs: Additional keyword arguments forwarded to
+            ``anthropic.AsyncAnthropic`` (e.g., ``api_key``, ``base_url``).
     """
 
     def __init__(self, model: str = "claude-opus-4-6", **kwargs: Any) -> None:

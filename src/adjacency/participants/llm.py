@@ -10,6 +10,10 @@ class LLMParticipant(Participant):
 
     Delegates both respond() and assess() to the provided Backend,
     injecting a system prompt if supplied.
+
+    Args:
+        backend: The LLM provider adapter to use for completions.
+        system_prompt: Optional system-level instruction injected into every request.
     """
 
     def __init__(self, backend: Backend, system_prompt: str | None = None) -> None:
