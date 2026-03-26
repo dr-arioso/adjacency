@@ -8,7 +8,6 @@ from uuid import UUID, uuid4
 
 from turnturnturn.base_purpose import BasePurpose  # type: ignore[import-untyped]
 from turnturnturn.events import HubEvent, HubEventType  # type: ignore[import-untyped]
-from turnturnturn.hub import TTT  # type: ignore[import-untyped]
 
 from adjacency.events import (
     REVIEWER_RESPONSE_EVENT,
@@ -116,13 +115,11 @@ class SocraticElicitationPurpose(BasePurpose):  # type: ignore[misc]
 
     def __init__(
         self,
-        hub: TTT,
         protocol: Protocol,
         adjacency_purpose: Any,
     ) -> None:
         super().__init__()
         self.id: UUID = uuid4()
-        self._hub = hub
         self._protocol = protocol
         self._adjacency_purpose = adjacency_purpose
         self._ladder_state: LadderState | None = None
@@ -179,7 +176,7 @@ class SocraticElicitationPurpose(BasePurpose):  # type: ignore[misc]
                 response_kind="free_text",
             ),
         )
-        await self._hub.take_turn(event)
+        await self.hub.take_turn(event)
 
     async def _on_stimulus_response(self, event: HubEvent) -> None:
         """Forward the stimulus response to the Reviewer for assessment."""
@@ -198,7 +195,7 @@ class SocraticElicitationPurpose(BasePurpose):  # type: ignore[misc]
                 canonical_response=canonical,
             ),
         )
-        await self._hub.take_turn(req)
+        await self.hub.take_turn(req)
 
     async def _on_reviewer_response(self, event: HubEvent) -> None:
         """Advance ladder or gestalt state based on the Reviewer's verdict."""
@@ -236,7 +233,7 @@ class SocraticElicitationPurpose(BasePurpose):  # type: ignore[misc]
                 response_kind="free_text",
             ),
         )
-        await self._hub.take_turn(event)
+        await self.hub.take_turn(event)
 
     async def _advance_gestalt(self) -> None:
         """Advance to the next gestalt step, or emit completion if exhausted."""
@@ -263,7 +260,7 @@ class SocraticElicitationPurpose(BasePurpose):  # type: ignore[misc]
                 session_id=self._session_id,
             ),
         )
-        await self._hub.take_turn(event)
+        await self.hub.take_turn(event)
 
     def _interpolate(self, text: str) -> str:
         """Substitute {{variable}} placeholders. Override in subclasses."""

@@ -41,55 +41,49 @@ def _resolver() -> DictResolver:
     )
 
 
-def test_assemble_session_returns_session(ttt):
+def test_assemble_session_returns_session(ttt, adjacency_purpose):
     protocol = load_protocol(MINIMAL_PROTOCOL)
     session = assemble_session(
         hub=ttt,
-        content={},
-        content_profile=_TEST_PROFILE,
+        adjacency_purpose=adjacency_purpose,
         protocol=protocol,
         participant_resolver=_resolver(),
     )
     assert isinstance(session, Session)
 
 
-def test_assemble_session_uses_injected_moderator_factory(ttt):
-    """Injected moderator_factory is called with (hub, protocol, adjacency_purpose)."""
+def test_assemble_session_uses_injected_moderator_factory(ttt, adjacency_purpose):
+    """Injected moderator_factory is called with (protocol, adjacency_purpose)."""
     from adjacency.purposes.base import AdjacencyPurpose
     from adjacency.purposes.moderator import SocraticElicitationPurpose
 
     protocol = load_protocol(MINIMAL_PROTOCOL)
     factory_calls: list[tuple] = []
 
-    def spy_factory(hub, proto, adj_purpose):
-        factory_calls.append((hub, proto, adj_purpose))
-        return SocraticElicitationPurpose(
-            hub=hub, protocol=proto, adjacency_purpose=adj_purpose
-        )
+    def spy_factory(proto, adj_purpose):
+        factory_calls.append((proto, adj_purpose))
+        return SocraticElicitationPurpose(protocol=proto, adjacency_purpose=adj_purpose)
 
     assemble_session(
         hub=ttt,
-        content={},
-        content_profile="test",
+        adjacency_purpose=adjacency_purpose,
         protocol=protocol,
         participant_resolver=_resolver(),
         moderator_factory=spy_factory,
     )
 
     assert len(factory_calls) == 1
-    assert factory_calls[0][0] is ttt
-    assert factory_calls[0][1] is protocol
-    assert isinstance(factory_calls[0][2], AdjacencyPurpose)
+    assert factory_calls[0][0] is protocol
+    assert isinstance(factory_calls[0][1], AdjacencyPurpose)
 
 
 @pytest.mark.asyncio
-async def test_assemble_session_and_start_registers_all_purposes(ttt):
+async def test_assemble_session_and_start_registers_all_purposes(ttt, adjacency_purpose):
     """End-to-end: assemble + start registers at least 4 Purposes."""
     protocol = load_protocol(MINIMAL_PROTOCOL)
     session = assemble_session(
         hub=ttt,
-        content={},
-        content_profile=_TEST_PROFILE,
+        adjacency_purpose=adjacency_purpose,
         protocol=protocol,
         participant_resolver=_resolver(),
     )

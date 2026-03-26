@@ -43,7 +43,7 @@ async def test_subject_purpose_calls_participant_on_stimulus(ttt):
     from adjacency.participants.scripted import ScriptedParticipant
 
     participant = ScriptedParticipant(responses=["The LLM mishandled the tense."])
-    subject = SubjectPurpose(hub=ttt, participant=participant)
+    subject = SubjectPurpose(participant=participant)
     await ttt.start_purpose(subject)
 
     stimulus_payload = StimulusPayload(
@@ -63,7 +63,7 @@ async def test_reviewer_purpose_calls_participant_assess_on_request(ttt):
     from adjacency.participants.scripted import ScriptedParticipant
 
     participant = ScriptedParticipant(responses=["yes"])
-    reviewer = ReviewerPurpose(hub=ttt, participant=participant)
+    reviewer = ReviewerPurpose(participant=participant)
     await ttt.start_purpose(reviewer)
 
     request_payload = ReviewerRequestPayload(

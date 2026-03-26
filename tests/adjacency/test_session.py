@@ -41,7 +41,7 @@ def test_adjacency_librarian_participant_instructions():
 
 
 @pytest.mark.asyncio
-async def test_session_starts_and_all_purposes_registered(ttt):
+async def test_session_starts_and_all_purposes_registered(ttt, adjacency_purpose):
     """assemble_session + start() registers at least 3 Purposes with the hub."""
     protocol = load_protocol(MINIMAL_PROTOCOL)
     resolver = DictResolver(
@@ -52,8 +52,7 @@ async def test_session_starts_and_all_purposes_registered(ttt):
     )
     session = assemble_session(
         hub=ttt,
-        content={},
-        content_profile="adjacency_test",
+        adjacency_purpose=adjacency_purpose,
         protocol=protocol,
         participant_resolver=resolver,
     )

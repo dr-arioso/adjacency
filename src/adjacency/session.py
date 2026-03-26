@@ -14,7 +14,9 @@ class Session:
     """Assembled study session: holds constructed Purposes, ready to be started.
 
     Do not construct directly — use assemble_session() in session_factory.py.
-    Registration order in start() is load-bearing and must not change.
+    The session-owner purpose is expected to have been registered already as
+    part of TTT.start(); start() registers the remaining purposes and then
+    explicitly tells the owner to start the session.
 
     Args:
         hub: The TTT hub for this session.
@@ -41,12 +43,12 @@ class Session:
     async def start(self) -> None:
         """Register all Purposes with the hub in the required load-bearing order.
 
-        AdjacencyPurpose must be last: registering it fires PURPOSE_STARTED, which
-        triggers start_turn(), which emits CTO_STARTED, which drives the full chain.
-        Subject, Reviewer, and Moderator must already be registered to receive it.
+        Subject, Reviewer, and Moderator must already be registered before the
+        owner starts the first turn so they can receive the resulting CTO/event
+        chain.
         """
         register_all()
         await self._hub.start_purpose(self._subject_purpose)
         await self._hub.start_purpose(self._reviewer_purpose)
         await self._hub.start_purpose(self._moderator)
-        await self._hub.start_purpose(self._adjacency_purpose)
+        await self._adjacency_purpose.start_session()

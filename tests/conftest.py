@@ -12,6 +12,7 @@ from turnturnturn.profile import (  # type: ignore[import-untyped]
     Profile,
     ProfileRegistry,
 )
+from adjacency.purposes.base import AdjacencyPurpose
 
 # Register a minimal permissive profile for adjacency tests.
 # Empty fields = accepts any content dict without validation.
@@ -20,7 +21,13 @@ ProfileRegistry.register(Profile(profile_id="adjacency_test", fields={}))
 
 
 @pytest.fixture
-def ttt() -> TTT:
+def adjacency_purpose() -> AdjacencyPurpose:
+    """A session-owner purpose suitable for adjacency tests."""
+    return AdjacencyPurpose(content_profile="adjacency_test", content={})
+
+
+@pytest.fixture
+def ttt(adjacency_purpose: AdjacencyPurpose) -> TTT:
     """A bootstrapped in-memory TTT hub with no traceprobe profile registered.
 
     Uses TTT.start() which loads built-in profiles via ProfileRegistry.load_defaults().
@@ -30,4 +37,7 @@ def ttt() -> TTT:
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", UserWarning)
-        return TTT.start(InMemoryPersistencePurpose())
+        return TTT.start(
+            InMemoryPersistencePurpose(),
+            session_owner_purpose=adjacency_purpose,
+        )

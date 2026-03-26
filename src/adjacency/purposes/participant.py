@@ -7,7 +7,6 @@ from uuid import UUID, uuid4
 
 from turnturnturn.base_purpose import BasePurpose  # type: ignore[import-untyped]
 from turnturnturn.events import HubEvent  # type: ignore[import-untyped]
-from turnturnturn.hub import TTT  # type: ignore[import-untyped]
 
 from adjacency.events import (
     REVIEWER_REQUEST_EVENT,
@@ -32,10 +31,9 @@ class ParticipantPurpose(BasePurpose):  # type: ignore[misc]
     may_emit: frozenset[str] = frozenset()
     subscribes_to: frozenset[str] = frozenset()
 
-    def __init__(self, hub: TTT, participant: Participant) -> None:
+    def __init__(self, participant: Participant) -> None:
         super().__init__()
         self.id: UUID = uuid4()
-        self._hub = hub
         self._participant = participant
 
     async def emit(self, event: Any) -> None:
@@ -45,7 +43,7 @@ class ParticipantPurpose(BasePurpose):  # type: ignore[misc]
                 f"{type(self).__name__} is not permitted to emit {event.event_type!r}. "
                 f"Allowed: {self.may_emit}"
             )
-        await self._hub.take_turn(event)
+        await self.hub.take_turn(event)
 
     async def _handle_event(self, event: HubEvent) -> None:
         """Route incoming events to _on_addressed_event if subscribed."""

@@ -95,11 +95,10 @@ def test_ladder_state_escalate_verdict_stays_on_step():
 
 
 @pytest.mark.asyncio
-async def test_socratic_elicitation_runs_one_pair_to_completion(ttt):
+async def test_socratic_elicitation_runs_one_pair_to_completion(ttt, adjacency_purpose):
     """Full run: CTO started -> SocraticElicitation drives ladder -> ProtocolCompletedEvent emitted."""
     from adjacency.events import PROTOCOL_COMPLETED_EVENT, register_all
     from adjacency.participants.scripted import ScriptedParticipant
-    from adjacency.purposes.base import AdjacencyPurpose
     from adjacency.purposes.moderator import SocraticElicitationPurpose
     from adjacency.purposes.participant import ReviewerPurpose, SubjectPurpose
 
@@ -120,35 +119,21 @@ async def test_socratic_elicitation_runs_one_pair_to_completion(ttt):
             if event.event_type == PROTOCOL_COMPLETED_EVENT:
                 completed.append("done")
 
-    adjacency_p = AdjacencyPurpose(
-        hub=ttt,
-        content_profile="adjacency_test",
-        content={"dialog": "Human: hello\nLLM: hi", "trace_pairs": []},
-    )
-    subject = SubjectPurpose(hub=ttt, participant=subject_p)
-    reviewer = ReviewerPurpose(hub=ttt, participant=reviewer_p)
+    adjacency_p = adjacency_purpose
+    adjacency_p._content = {"dialog": "Human: hello\nLLM: hi", "trace_pairs": []}
+    subject = SubjectPurpose(participant=subject_p)
+    reviewer = ReviewerPurpose(participant=reviewer_p)
     socratic = SocraticElicitationPurpose(
-        hub=ttt,
         protocol=protocol,
         adjacency_purpose=adjacency_p,
     )
     watcher = WatchPurpose()
 
-    # Registration order matters: all Purposes that react to downstream events
-    # must be registered before the Purpose that triggers the chain.
-    # AdjacencyPurpose.start_turn() fires CTO_STARTED synchronously during its
-    # PURPOSE_STARTED handler, which immediately triggers SocraticElicitationPurpose
-    # to send the first StimulusEvent. Subject and Reviewer must already be
-    # registered to receive that stimulus, so the order is:
-    #   subject, reviewer, socratic -> adjacency_p (triggers CTO_STARTED + full chain)
-    # All Purposes must be registered before AdjacencyPurpose, because
-    # start_purpose(adjacency_p) triggers the entire chain synchronously:
-    # PURPOSE_STARTED -> start_turn -> CTO_STARTED -> first stimulus ->
-    # subject responds -> reviewer responds -> ProtocolCompletedEvent -> session closes.
+    # Register downstream responders first, then explicitly start the owner.
     await ttt.start_purpose(subject)
     await ttt.start_purpose(reviewer)
     await ttt.start_purpose(socratic)
     await ttt.start_purpose(watcher)
-    await ttt.start_purpose(adjacency_p)
+    await adjacency_p.start_session()
 
     assert len(completed) == 1, "ProtocolCompletedEvent not received"
