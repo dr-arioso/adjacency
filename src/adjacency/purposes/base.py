@@ -11,15 +11,13 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID, uuid4
 
-from turnturnturn.base_purpose import SessionOwnerPurpose  # type: ignore[import-untyped]
-from turnturnturn.events import (  # type: ignore[import-untyped]
-    HubEvent,
-)
+from turnturnturn.base_purpose import SessionOwnerPurpose
+from turnturnturn.events import HubEvent
 
 from adjacency.events import PROTOCOL_COMPLETED_EVENT
 
 
-class AdjacencyPurpose(SessionOwnerPurpose):  # type: ignore[misc]
+class AdjacencyPurpose(SessionOwnerPurpose):
     """Session lifecycle anchor that owns the TTT turn lifecycle.
 
     This is the explicit startup-time session owner for an adjacency-backed

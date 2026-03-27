@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from typing import Any, Literal
 from uuid import UUID, uuid4
 
-from turnturnturn.hub import TTT  # type: ignore[import-untyped]
+from turnturnturn.hub import TTT
 
 
 def _now_ms() -> int:
@@ -141,22 +141,24 @@ class ReviewerResponsePayload:
 
     Attributes:
         question_key: Identifier for the question.
-        response: Reviewer's verdict: "yes", "no", or "escalate".
+        response: Reviewer's verdict: "yes" or "no".
+        escalate: Whether the reviewer also wants escalation or extra scrutiny.
         based_on_event_id: Event ID of the stimulus response being reviewed.
 
     Raises:
-        ValueError: If response is not one of the three allowed values.
+        ValueError: If response is not one of the two allowed values.
     """
 
     question_key: str
-    response: Literal["yes", "no", "escalate"]
+    response: Literal["yes", "no"]
     based_on_event_id: str
+    escalate: bool = False
 
     def __post_init__(self) -> None:
         """Validate response field on construction."""
-        if self.response not in ("yes", "no", "escalate"):
+        if self.response not in ("yes", "no"):
             raise ValueError(
-                f"ReviewerResponsePayload.response must be 'yes', 'no', or 'escalate'; "
+                f"ReviewerResponsePayload.response must be 'yes' or 'no'; "
                 f"got {self.response!r}"
             )
 
@@ -171,6 +173,7 @@ class ReviewerResponsePayload:
             "_v": 1,
             "question_key": self.question_key,
             "response": self.response,
+            "escalate": self.escalate,
             "based_on_event_id": self.based_on_event_id,
         }
 

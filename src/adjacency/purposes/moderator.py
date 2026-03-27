@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, cast
 from uuid import UUID, uuid4
 
-from turnturnturn.base_purpose import BasePurpose  # type: ignore[import-untyped]
-from turnturnturn.events import HubEvent, HubEventType  # type: ignore[import-untyped]
+from turnturnturn.base_purpose import BasePurpose
+from turnturnturn.events import HubEvent, HubEventType
 
 from adjacency.events import (
     REVIEWER_RESPONSE_EVENT,
@@ -16,8 +16,10 @@ from adjacency.events import (
     ProtocolCompletedPayload,
     ReviewerRequestEvent,
     ReviewerRequestPayload,
+    ReviewerResponsePayload,
     StimulusEvent,
     StimulusPayload,
+    StimulusResponsePayload,
 )
 from adjacency.protocol import Escalation, LadderStep, Protocol
 
@@ -94,7 +96,7 @@ class LadderState:
             # 'terminal' case: leave state as-is (caller ends session)
 
 
-class SocraticElicitationPurpose(BasePurpose):  # type: ignore[misc]
+class SocraticElicitationPurpose(BasePurpose):
     """Drives the Socratic elicitation ladder for a study session.
 
     Responds to CTO_STARTED to initialize ladder state and send the first
@@ -169,7 +171,7 @@ class SocraticElicitationPurpose(BasePurpose):  # type: ignore[misc]
         event = StimulusEvent(
             purpose_id=self.id,
             purpose_name=self.name,
-            hub_token=self.token,
+            hub_token=self._require_token(),
             payload=StimulusPayload(
                 question_key=current_key,
                 messages=list(self._messages),
@@ -180,7 +182,7 @@ class SocraticElicitationPurpose(BasePurpose):  # type: ignore[misc]
 
     async def _on_stimulus_response(self, event: HubEvent) -> None:
         """Forward the stimulus response to the Reviewer for assessment."""
-        payload = event.payload
+        payload = cast(StimulusResponsePayload, event.payload)
         self._messages = list(payload.messages)
         # CRITICAL: use payload.question_key, not current_step.key
         # current_step is None when ladder is complete (gestalt phase)
@@ -188,7 +190,7 @@ class SocraticElicitationPurpose(BasePurpose):  # type: ignore[misc]
         req = ReviewerRequestEvent(
             purpose_id=self.id,
             purpose_name=self.name,
-            hub_token=self.token,
+            hub_token=self._require_token(),
             payload=ReviewerRequestPayload(
                 question_key=payload.question_key,
                 messages=list(self._messages),
@@ -200,7 +202,8 @@ class SocraticElicitationPurpose(BasePurpose):  # type: ignore[misc]
     async def _on_reviewer_response(self, event: HubEvent) -> None:
         """Advance ladder or gestalt state based on the Reviewer's verdict."""
         assert self._ladder_state is not None
-        verdict = event.payload.response
+        payload = cast(ReviewerResponsePayload, event.payload)
+        verdict = payload.response
         if self._in_gestalt:
             await self._advance_gestalt()
             return
@@ -226,7 +229,7 @@ class SocraticElicitationPurpose(BasePurpose):  # type: ignore[misc]
         event = StimulusEvent(
             purpose_id=self.id,
             purpose_name=self.name,
-            hub_token=self.token,
+            hub_token=self._require_token(),
             payload=StimulusPayload(
                 question_key=step.key,
                 messages=list(self._messages),
@@ -254,7 +257,7 @@ class SocraticElicitationPurpose(BasePurpose):  # type: ignore[misc]
         event = ProtocolCompletedEvent(
             purpose_id=self.id,
             purpose_name=self.name,
-            hub_token=self.token,
+            hub_token=self._require_token(),
             payload=ProtocolCompletedPayload(
                 final_state=final_key,
                 session_id=self._session_id,

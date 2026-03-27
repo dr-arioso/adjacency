@@ -1,0 +1,64 @@
+site_name: Adjacency
+site_description: Adjacency is a reusable workflow layer on top of TTT. It provides stable session assembly, participant abstractions, and built-in workflows such as source_monitoring_annotation.
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+    - content.action.edit
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            members_order: source
+            inherited_members: false
+            filters:
+              - "!^_"
+              - "^__init__$"
+
+nav:
+  - Overview: index.md
+  - Architecture:
+      - Overview: architecture/index.md
+      - Core Architecture: architecture/core_architecture.md
+      - Source Monitoring Workflow: architecture/source_monitoring_annotation.md
+  - API Reference:
+      - Overview: api/index.md
+      - Core: api/core.md
+      - Participants: api/participants.md
+      - Purposes: api/purposes.md
+      - Backends: api/backends.md
+  - Developer Guide: dev-guide.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - toc:
+      permalink: true

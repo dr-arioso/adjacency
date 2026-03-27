@@ -1,0 +1,106 @@
+{
+  "schema": "ttt.cto",
+  "version": 1,
+  "cto": {
+    "turn_id": "11111111-1111-4111-8111-111111111111",
+    "session_id": "22222222-2222-4222-8222-222222222222",
+    "created_at_ms": 1711411200000,
+    "content_profile": {
+      "id": "lexical_v0_1",
+      "version": 1
+    },
+    "content": {
+      "speakers": [
+        {
+          "session_speaker_id": "doctor",
+          "display_label": "Doctor",
+          "external_speaker_id": "speaker_0"
+        },
+        {
+          "session_speaker_id": "patient",
+          "display_label": "Patient",
+          "external_speaker_id": "speaker_1"
+        }
+      ],
+      "turns": [
+        {
+          "source_turn_id": "turn_01",
+          "ordinal": 1,
+          "utterance": "What brings you in today?",
+          "raw_source_tag": "speaker_0"
+        },
+        {
+          "source_turn_id": "turn_02",
+          "ordinal": 2,
+          "utterance": "My right knee has gotten red and swollen over the last few days.",
+          "raw_source_tag": "speaker_1"
+        },
+        {
+          "source_turn_id": "turn_03",
+          "ordinal": 3,
+          "utterance": "Did you injure it or twist it recently?",
+          "raw_source_tag": "speaker_0"
+        },
+        {
+          "source_turn_id": "turn_04",
+          "ordinal": 4,
+          "utterance": "No, nothing like that. I haven't had this happen before either.",
+          "raw_source_tag": "speaker_1"
+        },
+        {
+          "source_turn_id": "turn_05",
+          "ordinal": 5,
+          "utterance": "Does it hurt all the time or mostly with movement?",
+          "raw_source_tag": "speaker_0"
+        },
+        {
+          "source_turn_id": "turn_06",
+          "ordinal": 6,
+          "utterance": "It barely hurts if I'm sitting still, but it's excruciating when I try to put weight on it.",
+          "raw_source_tag": "speaker_1"
+        },
+        {
+          "source_turn_id": "turn_07",
+          "ordinal": 7,
+          "utterance": "Any fever, chills, or feeling sick otherwise?",
+          "raw_source_tag": "speaker_0"
+        },
+        {
+          "source_turn_id": "turn_08",
+          "ordinal": 8,
+          "utterance": "No fever that I've noticed, and otherwise I feel okay.",
+          "raw_source_tag": "speaker_1"
+        },
+        {
+          "source_turn_id": "turn_09",
+          "ordinal": 9,
+          "utterance": "Any medical problems in the past, gout, or family history of joint issues?",
+          "raw_source_tag": "speaker_0"
+        },
+        {
+          "source_turn_id": "turn_10",
+          "ordinal": 10,
+          "utterance": "No significant medical history and nothing like that in my family.",
+          "raw_source_tag": "speaker_1"
+        },
+        {
+          "source_turn_id": "turn_11",
+          "ordinal": 11,
+          "utterance": "Have you been out in the heat or gotten dehydrated recently?",
+          "raw_source_tag": "speaker_0"
+        },
+        {
+          "source_turn_id": "turn_12",
+          "ordinal": 12,
+          "utterance": "It's been really hot lately and I've probably not been drinking enough water.",
+          "raw_source_tag": "speaker_1"
+        }
+      ]
+    },
+    "observations": {},
+    "last_event_id": "33333333-3333-4333-8333-333333333333"
+  },
+  "metadata": {
+    "session_code": "legacy-knee-office-visit"
+  }
+}

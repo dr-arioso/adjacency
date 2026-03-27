@@ -39,4 +39,12 @@ async def test_llm_participant_assess_raises_not_implemented_for_scoring():
     backend = MockBackend("yes")
     participant = LLMParticipant(backend=backend)
     result = await participant.assess([], "locus_visible", "canonical")
-    assert result in ("yes", "no", "escalate")
+    assert result in ("yes", "no", "yes_escalate", "no_escalate")
+
+
+@pytest.mark.asyncio
+async def test_llm_participant_assess_accepts_escalation_suffix():
+    backend = MockBackend("yes_escalate")
+    participant = LLMParticipant(backend=backend)
+    result = await participant.assess([], "locus_visible", "canonical")
+    assert result == "yes_escalate"

@@ -3,10 +3,13 @@ name = "adjacency"
 version = "0.1.0"
 description = "Reusable interaction and language-study framework"
 requires-python = ">=3.12"
+scripts = { adj = "adjacency.cli:main" }
 dependencies = [
     "turnturnturn @ file:///home/arioso/projects/turnturnturn",
     "pyyaml",
     "anthropic",
+    "openai",
+    "google-genai",
 ]
 # Note: all file:// paths use /home/arioso/... (absolute) to match the
 # convention in traceprobe/pyproject.toml. Do not use ~/... here.
@@ -21,6 +24,10 @@ dev = [
     "isort>=6.0",
     "mypy>=1.0",
     "interrogate>=1.7",
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.25",
+    "griffe>=0.45",
 ]
 
 [tool.setuptools]
@@ -32,16 +39,45 @@ where = ["src"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
+mypy_path = ["../turnturnturn/src"]
+files = ["src/adjacency"]
+
+[[tool.mypy.overrides]]
+module = [
+    "adjacency.events",
+    "adjacency.profiles",
+    "adjacency.purposes.moderator",
+    "adjacency.purposes.participant",
+    "adjacency.purposes.base",
+    "adjacency.cli",
+    "adjacency.session",
+    "adjacency.session_factory",
+    "adjacency.source_monitoring",
+]
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = ["yaml"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["ollama"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["adjacency.protocol"]
+disable_error_code = ["import-untyped"]
 
 [tool.black]
 line-length = 88
+target-version = ["py312"]
 
 [tool.ruff]
 line-length = 88
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "C90"]
-ignore = ["E501"]
+ignore = ["E501", "C901"]
 
 [tool.isort]
 profile = "black"

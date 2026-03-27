@@ -85,3 +85,15 @@ def test_subject_purpose_may_emit_only_stimulus_response():
 def test_reviewer_purpose_may_emit_only_reviewer_response():
     assert REVIEWER_RESPONSE_EVENT in ReviewerPurpose.may_emit
     assert STIMULUS_RESPONSE_EVENT not in ReviewerPurpose.may_emit
+
+
+def test_reviewer_purpose_normalizes_yes_escalate():
+    response, escalate = ReviewerPurpose._normalize_assessment("yes_escalate")
+    assert response == "yes"
+    assert escalate is True
+
+
+def test_reviewer_purpose_normalizes_plain_escalate_to_no_plus_flag():
+    response, escalate = ReviewerPurpose._normalize_assessment("escalate")
+    assert response == "no"
+    assert escalate is True

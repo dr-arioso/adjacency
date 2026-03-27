@@ -4,8 +4,7 @@ import pytest
 
 from adjacency.protocol import load_protocol
 
-MINIMAL_PROTOCOL_YAML = textwrap.dedent(
-    """
+MINIMAL_PROTOCOL_YAML = textwrap.dedent("""
     type: socratic_elicitation
 
     framing:
@@ -35,8 +34,7 @@ MINIMAL_PROTOCOL_YAML = textwrap.dedent(
 
     completion:
       when: locus_identified
-"""
-)
+""")
 
 
 def test_protocol_loads_ladder_keys():

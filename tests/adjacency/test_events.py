@@ -21,13 +21,15 @@ def test_stimulus_payload_serialization():
 
 
 def test_reviewer_response_payload_valid_values():
-    for val in ("yes", "no", "escalate"):
+    for val, escalate in (("yes", False), ("no", False), ("yes", True), ("no", True)):
         p = ReviewerResponsePayload(
             question_key="locus_visible",
             response=val,
+            escalate=escalate,
             based_on_event_id=str(uuid4()),
         )
         assert p.response == val
+        assert p.escalate is escalate
 
 
 def test_reviewer_response_payload_rejects_invalid():

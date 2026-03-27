@@ -78,7 +78,9 @@ def test_assemble_session_uses_injected_moderator_factory(ttt, adjacency_purpose
 
 
 @pytest.mark.asyncio
-async def test_assemble_session_and_start_registers_all_purposes(ttt, adjacency_purpose):
+async def test_assemble_session_and_start_registers_all_purposes(
+    ttt, adjacency_purpose
+):
     """End-to-end: assemble + start registers at least 4 Purposes."""
     protocol = load_protocol(MINIMAL_PROTOCOL)
     session = assemble_session(

@@ -2,26 +2,29 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any, Literal, cast
 from uuid import UUID, uuid4
 
-from turnturnturn.base_purpose import BasePurpose  # type: ignore[import-untyped]
-from turnturnturn.events import HubEvent  # type: ignore[import-untyped]
+from turnturnturn.base_purpose import BasePurpose
+from turnturnturn.events import HubEvent
 
 from adjacency.events import (
     REVIEWER_REQUEST_EVENT,
     REVIEWER_RESPONSE_EVENT,
     STIMULUS_EVENT,
     STIMULUS_RESPONSE_EVENT,
+    ReviewerRequestPayload,
     ReviewerResponseEvent,
     ReviewerResponsePayload,
+    StimulusPayload,
     StimulusResponseEvent,
     StimulusResponsePayload,
 )
 from adjacency.participants.base import Participant
 
 
-class ParticipantPurpose(BasePurpose):  # type: ignore[misc]
+class ParticipantPurpose(BasePurpose):
     """Base for role-specific participant Purposes.
 
     Subclasses declare may_emit and subscribes_to as class variables.
@@ -63,7 +66,7 @@ class SubjectPurpose(ParticipantPurpose):
 
     async def _on_addressed_event(self, event: HubEvent) -> None:
         """Receive a StimulusEvent, call the participant, and emit a StimulusResponseEvent."""
-        payload = event.payload
+        payload = cast(StimulusPayload, event.payload)
         response_text = await self._participant.respond(
             messages=payload.messages,
             question_key=payload.question_key,
@@ -74,7 +77,7 @@ class SubjectPurpose(ParticipantPurpose):
         response_event = StimulusResponseEvent(
             purpose_id=self.id,
             purpose_name=self.name,
-            hub_token=self.token,
+            hub_token=self._require_token(),
             payload=StimulusResponsePayload(
                 question_key=payload.question_key,
                 messages=updated_messages,
@@ -90,21 +93,55 @@ class ReviewerPurpose(ParticipantPurpose):
     subscribes_to = frozenset({REVIEWER_REQUEST_EVENT})
     may_emit = frozenset({REVIEWER_RESPONSE_EVENT})
 
+    @staticmethod
+    def _normalize_assessment(verdict: str) -> tuple[Literal["yes", "no"], bool]:
+        """Normalize reviewer output into a verdict plus optional escalation flag.
+
+        Accepted forms:
+        - `yes`
+        - `no`
+        - `escalate` -> coerced to `("no", True)` for backward compatibility
+        - `yes_escalate`, `yes+escalate`, `escalate_yes`
+        - `no_escalate`, `no+escalate`, `escalate_no`
+        """
+        tokens = {
+            token for token in re.split(r"[^a-z]+", verdict.strip().lower()) if token
+        }
+        has_yes = "yes" in tokens
+        has_no = "no" in tokens
+        has_escalate = "escalate" in tokens
+
+        if has_yes and has_no:
+            raise ValueError(
+                f"reviewer verdict cannot contain both yes and no: {verdict!r}"
+            )
+        if has_yes:
+            return "yes", has_escalate
+        if has_no:
+            return "no", has_escalate
+        if has_escalate:
+            return "no", True
+        raise ValueError(
+            f"reviewer verdict must contain yes, no, or escalate; got {verdict!r}"
+        )
+
     async def _on_addressed_event(self, event: HubEvent) -> None:
-        """Receive a ReviewerRequestEvent, call the participant, and emit a ReviewerResponseEvent."""
-        payload = event.payload
+        """Receive a reviewer request and emit the normalized reviewer response."""
+        payload = cast(ReviewerRequestPayload, event.payload)
         verdict = await self._participant.assess(
             messages=payload.messages,
             question_key=payload.question_key,
             canonical=payload.canonical_response,
         )
+        normalized_response, escalate = self._normalize_assessment(verdict)
         response_event = ReviewerResponseEvent(
             purpose_id=self.id,
             purpose_name=self.name,
-            hub_token=self.token,
+            hub_token=self._require_token(),
             payload=ReviewerResponsePayload(
                 question_key=payload.question_key,
-                response=cast(Literal["yes", "no", "escalate"], verdict),
+                response=normalized_response,
+                escalate=escalate,
                 based_on_event_id=str(event.event_id),
             ),
         )

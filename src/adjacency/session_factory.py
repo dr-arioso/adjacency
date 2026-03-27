@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Callable
 
-from turnturnturn.hub import TTT  # type: ignore[import-untyped]
+from turnturnturn.hub import TTT
 
 from adjacency.participants.resolver import ParticipantResolver
 from adjacency.protocol import Protocol
@@ -29,7 +29,10 @@ def _default_moderator_factory(
     protocol: Protocol,
     adjacency_purpose: AdjacencyPurpose,
 ) -> SocraticElicitationPurpose:
-    return SocraticElicitationPurpose(protocol=protocol, adjacency_purpose=adjacency_purpose)
+    return SocraticElicitationPurpose(
+        protocol=protocol,
+        adjacency_purpose=adjacency_purpose,
+    )
 
 
 def assemble_session(
@@ -58,8 +61,12 @@ def assemble_session(
     if moderator_factory is None:
         moderator_factory = _default_moderator_factory
 
-    subject_purpose = SubjectPurpose(participant=participant_resolver.resolve("subject"))
-    reviewer_purpose = ReviewerPurpose(participant=participant_resolver.resolve("reviewer"))
+    subject_purpose = SubjectPurpose(
+        participant=participant_resolver.resolve("subject")
+    )
+    reviewer_purpose = ReviewerPurpose(
+        participant=participant_resolver.resolve("reviewer")
+    )
     moderator = moderator_factory(protocol, adjacency_purpose)
 
     return Session(

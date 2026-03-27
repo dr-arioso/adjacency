@@ -35,16 +35,18 @@ class LLMParticipant(Participant):
     async def assess(
         self, messages: list[dict[str, Any]], question_key: str, canonical: str | None
     ) -> str:
-        """LLM-as-judge: minimal implementation. Parses first word of response."""
+        """LLM-as-judge: return yes/no, optionally with an escalate suffix."""
         user_messages = [m for m in messages if m.get("role") != "system"]
         judge_prompt = (
             f"Based on the conversation above, did the subject correctly answer: "
-            f"'{question_key}'? Reply with only: yes, no, or escalate."
+            f"'{question_key}'? Reply with only one of: yes, no, yes_escalate, no_escalate."
         )
         response = await self._backend.complete(
             user_messages + [{"role": "user", "content": judge_prompt}],
         )
-        first_word = (
-            response.strip().lower().split()[0] if response.strip() else "escalate"
+        first_token = response.strip().lower().split()[0] if response.strip() else ""
+        return (
+            first_token
+            if first_token in ("yes", "no", "yes_escalate", "no_escalate")
+            else "no_escalate"
         )
-        return first_word if first_word in ("yes", "no", "escalate") else "escalate"

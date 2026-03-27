@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from turnturnturn.hub import TTT  # type: ignore[import-untyped]
+from turnturnturn.hub import TTT
 
 from adjacency.events import register_all
 from adjacency.purposes.base import AdjacencyPurpose

@@ -12,6 +12,7 @@ from turnturnturn.profile import (  # type: ignore[import-untyped]
     Profile,
     ProfileRegistry,
 )
+
 from adjacency.purposes.base import AdjacencyPurpose
 
 # Register a minimal permissive profile for adjacency tests.

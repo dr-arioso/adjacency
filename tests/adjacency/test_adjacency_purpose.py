@@ -15,6 +15,7 @@ from adjacency.purposes.base import AdjacencyPurpose
 
 @pytest.fixture(autouse=True)
 def register_events():
+    """Ensure adjacency event types are registered before each test."""
     register_all()
 
 
@@ -84,10 +85,13 @@ async def test_adjacency_purpose_persists_predefined_session_code():
     payloads = {
         e["event_type"]: e["payload"]
         for e in persister.events
-        if e["event_type"] in {
+        if e["event_type"]
+        in {
             HubEventType.SESSION_CLOSING.value,
             HubEventType.SESSION_CLOSE_PENDING.value,
         }
     }
     assert payloads[HubEventType.SESSION_CLOSING.value]["session_code"] == "alpha-42"
-    assert payloads[HubEventType.SESSION_CLOSE_PENDING.value]["session_code"] == "alpha-42"
+    assert (
+        payloads[HubEventType.SESSION_CLOSE_PENDING.value]["session_code"] == "alpha-42"
+    )
