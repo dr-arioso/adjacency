@@ -18,10 +18,10 @@
 ## Planned Commit Structure
 
 1. **TTT request/import events**
-   - Add built-in purpose events `cto_request` and `cto_imported`.
+   - Add built-in purpose events `request_cto` and `cto_imported`.
    - Add `BasePurpose.request_cto(*, session_id, source_kind, source_locator, session_code=None, request_id=None)`.
-   - `cto_request` is allowed only while the hub is `open`.
-   - `cto_request` is persisted like any accepted purpose event, then relayed to the persistence purpose only.
+   - `request_cto` is allowed only while the hub is `open`.
+   - `request_cto` is persisted like any accepted purpose event, then relayed to the persistence purpose only.
 
 2. **Canonical `cto_json` schema**
    - Add one canonical serialized CTO document family with `schema` and `version`.
@@ -35,7 +35,7 @@
    - Imported historical/session/source metadata is preserved separately under a reserved TTT provenance namespace, not as live session authority.
 
 3. **Archivist-backed import**
-   - `Archivist` handles `cto_request` for `source_kind="cto_json"` only in v1.
+   - `Archivist` handles `request_cto` for `source_kind="cto_json"` only in v1.
    - Dedupe requests with the agreed hybrid policy:
      - use explicit `request_id` when present
      - otherwise derive a stable key from source kind + source locator + content hash
@@ -48,7 +48,7 @@
 4. **Hub adoption path**
    - Hub accepts `cto_imported` only from the registered persistence purpose.
    - Event order is fixed:
-     1. `cto_request`
+     1. `request_cto`
      2. `cto_imported`
      3. hub adopts imported CTO into live canonical state
      4. `cto_started`
@@ -98,7 +98,7 @@
 ## Public Interfaces / Contracts
 
 - `turnturnturn.base_purpose.BasePurpose.request_cto(...)`
-- New purpose-event payloads for `cto_request` and `cto_imported`
+- New purpose-event payloads for `request_cto` and `cto_imported`
 - New `adjacency` profile registration entrypoint for `lexical_v0_1`
 - New built-in workflow module for `source_monitoring_annotation`
 - New CLI command: `adj start source_monitoring_annotation --cto-import <path>`
@@ -128,7 +128,7 @@
 ## Test Plan
 
 - **TTT**
-  - `cto_request` allowed in `open`, rejected in `closing` and `closed`
+  - `request_cto` allowed in `open`, rejected in `closing` and `closed`
   - idempotent repeated imports
   - imported observations remain live and namespaced as provided
   - historical/source/session metadata lands in reserved TTT provenance data

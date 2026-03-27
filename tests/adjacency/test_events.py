@@ -2,14 +2,14 @@
 from uuid import uuid4
 
 from adjacency.events import (
-    ProtocolCompletedPayload,
-    ReviewerResponsePayload,
-    StimulusPayload,
+    PromptSubjectPayload,
+    ReviewResponsePayload,
+    WorkflowCompletedPayload,
 )
 
 
-def test_stimulus_payload_serialization():
-    payload = StimulusPayload(
+def test_prompt_subject_payload_serialization():
+    payload = PromptSubjectPayload(
         question_key="locus_visible",
         messages=[{"role": "user", "content": "Do you notice..."}],
         response_kind="free_text",
@@ -20,9 +20,9 @@ def test_stimulus_payload_serialization():
     assert isinstance(d["messages"], list)
 
 
-def test_reviewer_response_payload_valid_values():
+def test_review_response_payload_valid_values():
     for val, escalate in (("yes", False), ("no", False), ("yes", True), ("no", True)):
-        p = ReviewerResponsePayload(
+        p = ReviewResponsePayload(
             question_key="locus_visible",
             response=val,
             escalate=escalate,
@@ -32,18 +32,18 @@ def test_reviewer_response_payload_valid_values():
         assert p.escalate is escalate
 
 
-def test_reviewer_response_payload_rejects_invalid():
+def test_review_response_payload_rejects_invalid():
     import pytest
 
     with pytest.raises(ValueError):
-        ReviewerResponsePayload(
+        ReviewResponsePayload(
             question_key="locus_visible",
             response="maybe",
             based_on_event_id=str(uuid4()),
         )
 
 
-def test_protocol_completed_payload_serialization():
-    p = ProtocolCompletedPayload(final_state="mechanism_named", session_id=str(uuid4()))
+def test_workflow_completed_payload_serialization():
+    p = WorkflowCompletedPayload(final_state="mechanism_named", session_id=str(uuid4()))
     d = p.as_dict()
     assert d["final_state"] == "mechanism_named"

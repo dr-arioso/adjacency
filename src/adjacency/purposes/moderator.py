@@ -10,16 +10,16 @@ from turnturnturn.base_purpose import BasePurpose
 from turnturnturn.events import HubEvent, HubEventType
 
 from adjacency.events import (
-    REVIEWER_RESPONSE_EVENT,
-    STIMULUS_RESPONSE_EVENT,
-    ProtocolCompletedEvent,
-    ProtocolCompletedPayload,
-    ReviewerRequestEvent,
-    ReviewerRequestPayload,
-    ReviewerResponsePayload,
-    StimulusEvent,
-    StimulusPayload,
-    StimulusResponsePayload,
+    REVIEW_RESPONSE,
+    SUBJECT_RESPONSE,
+    PromptSubject,
+    PromptSubjectPayload,
+    RequestReview,
+    RequestReviewPayload,
+    ReviewResponsePayload,
+    SubjectResponsePayload,
+    WorkflowCompleted,
+    WorkflowCompletedPayload,
 )
 from adjacency.protocol import Escalation, LadderStep, Protocol
 
@@ -100,9 +100,9 @@ class SocraticElicitationPurpose(BasePurpose):
     """Drives the Socratic elicitation ladder for a study session.
 
     Responds to CTO_STARTED to initialize ladder state and send the first
-    stimulus. Responds to STIMULUS_RESPONSE_EVENT to request reviewer
-    assessment. Responds to REVIEWER_RESPONSE_EVENT to advance or complete
-    the ladder, then the gestalt phase, then emit ProtocolCompletedEvent.
+    stimulus. Responds to SUBJECT_RESPONSE to request review. Responds to
+    REVIEW_RESPONSE to advance or complete the ladder, then the gestalt
+    phase, then emit WorkflowCompleted.
 
     Override _interpolate() and _get_canonical_response() in subclasses
     to inject domain-specific content.
@@ -134,9 +134,9 @@ class SocraticElicitationPurpose(BasePurpose):
         """Dispatch hub events to the appropriate lifecycle handler."""
         if event.event_type == HubEventType.CTO_STARTED:
             await self._on_cto_started()
-        elif event.event_type == STIMULUS_RESPONSE_EVENT:
+        elif event.event_type == SUBJECT_RESPONSE:
             await self._on_stimulus_response(event)
-        elif event.event_type == REVIEWER_RESPONSE_EVENT:
+        elif event.event_type == REVIEW_RESPONSE:
             await self._on_reviewer_response(event)
 
     async def _on_cto_started(self) -> None:
@@ -168,11 +168,11 @@ class SocraticElicitationPurpose(BasePurpose):
         ), "_send_next_stimulus called when ladder is complete"
         prompt = self._interpolate(variant)
         self._messages.append({"role": "user", "content": prompt})
-        event = StimulusEvent(
+        event = PromptSubject(
             purpose_id=self.id,
             purpose_name=self.name,
             hub_token=self._require_token(),
-            payload=StimulusPayload(
+            payload=PromptSubjectPayload(
                 question_key=current_key,
                 messages=list(self._messages),
                 response_kind="free_text",
@@ -182,16 +182,16 @@ class SocraticElicitationPurpose(BasePurpose):
 
     async def _on_stimulus_response(self, event: HubEvent) -> None:
         """Forward the stimulus response to the Reviewer for assessment."""
-        payload = cast(StimulusResponsePayload, event.payload)
+        payload = cast(SubjectResponsePayload, event.payload)
         self._messages = list(payload.messages)
         # CRITICAL: use payload.question_key, not current_step.key
         # current_step is None when ladder is complete (gestalt phase)
         canonical = self._get_canonical_response(payload.question_key)
-        req = ReviewerRequestEvent(
+        req = RequestReview(
             purpose_id=self.id,
             purpose_name=self.name,
             hub_token=self._require_token(),
-            payload=ReviewerRequestPayload(
+            payload=RequestReviewPayload(
                 question_key=payload.question_key,
                 messages=list(self._messages),
                 canonical_response=canonical,
@@ -202,7 +202,7 @@ class SocraticElicitationPurpose(BasePurpose):
     async def _on_reviewer_response(self, event: HubEvent) -> None:
         """Advance ladder or gestalt state based on the Reviewer's verdict."""
         assert self._ladder_state is not None
-        payload = cast(ReviewerResponsePayload, event.payload)
+        payload = cast(ReviewResponsePayload, event.payload)
         verdict = payload.response
         if self._in_gestalt:
             await self._advance_gestalt()
@@ -226,11 +226,11 @@ class SocraticElicitationPurpose(BasePurpose):
         step = self._protocol.gestalt[self._gestalt_index]
         prompt = self._interpolate(step.stimulus)
         self._messages.append({"role": "user", "content": prompt})
-        event = StimulusEvent(
+        event = PromptSubject(
             purpose_id=self.id,
             purpose_name=self.name,
             hub_token=self._require_token(),
-            payload=StimulusPayload(
+            payload=PromptSubjectPayload(
                 question_key=step.key,
                 messages=list(self._messages),
                 response_kind="free_text",
@@ -247,18 +247,18 @@ class SocraticElicitationPurpose(BasePurpose):
             await self._emit_completed()
 
     async def _emit_completed(self) -> None:
-        """Emit ProtocolCompletedEvent to signal end of the study session."""
+        """Emit WorkflowCompleted to signal end of the study session."""
         state = self._ladder_state
         final_key = (
             state.resolved_keys[-1]
             if state and state.resolved_keys
             else self._protocol.completion_key
         )
-        event = ProtocolCompletedEvent(
+        event = WorkflowCompleted(
             purpose_id=self.id,
             purpose_name=self.name,
             hub_token=self._require_token(),
-            payload=ProtocolCompletedPayload(
+            payload=WorkflowCompletedPayload(
                 final_state=final_key,
                 session_id=self._session_id,
             ),

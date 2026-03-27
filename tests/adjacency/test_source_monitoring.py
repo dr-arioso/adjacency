@@ -106,11 +106,11 @@ async def test_source_monitoring_annotation_imports_and_writes_deltas(tmp_path):
 
     records = [json.loads(line) for line in jsonl_path.read_text().splitlines()]
     event_types = [record["event_type"] for record in records]
-    assert "cto_request" in event_types
+    assert "request_cto" in event_types
     assert "cto_imported" in event_types
     assert "cto_started" in event_types
     assert "delta_merged" in event_types
-    assert "end_session" in event_types
+    assert "request_session_end" in event_types
     assert "session_completed" in event_types
 
     with pytest.raises(HubClosedError):

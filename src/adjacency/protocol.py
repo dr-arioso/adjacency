@@ -57,7 +57,7 @@ class GestaltStep:
 
 @dataclass(frozen=True)
 class ControlSection:
-    """Stimulus and reviewer question for control (baseline) pairs.
+    """Subject prompt and review question for control (baseline) pairs.
 
     Used for comparison with experimental pairs; control pairs do not
     carry canonical_misalignment.

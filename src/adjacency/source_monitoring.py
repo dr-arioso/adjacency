@@ -11,10 +11,10 @@ from uuid import UUID, uuid4
 from turnturnturn.base_purpose import SessionOwnerPurpose
 from turnturnturn.delta import Delta
 from turnturnturn.events import (
-    DeltaProposalEvent,
-    DeltaProposalPayload,
     HubEvent,
     HubEventType,
+    ProposeDelta,
+    ProposeDeltaPayload,
     PurposeEventType,
 )
 
@@ -180,7 +180,7 @@ class SourceMonitoringAnnotatorPurpose(SessionOwnerPurpose):
             )
 
         self._completed = True
-        await self.end_session(str(self._session_id))
+        await self.request_session_end(str(self._session_id))
 
     def _normalize_selection(
         self, selection: str, speakers: list[dict[str, Any]]
@@ -219,14 +219,14 @@ class SourceMonitoringAnnotatorPurpose(SessionOwnerPurpose):
                 ]
             },
         )
-        event = DeltaProposalEvent(
-            event_type=PurposeEventType.DELTA_PROPOSAL,
+        event = ProposeDelta(
+            event_type=PurposeEventType.PROPOSE_DELTA,
             event_id=uuid4(),
             created_at_ms=_now_ms(),
             purpose_id=self.id,
             purpose_name=self.name,
             hub_token=self._require_token(),
-            payload=DeltaProposalPayload(delta=delta),
+            payload=ProposeDeltaPayload(delta=delta),
         )
         await self.hub.take_turn(event)
 

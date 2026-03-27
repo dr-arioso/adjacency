@@ -7,12 +7,12 @@ import pytest
 from turnturnturn.events import HubEvent
 
 from adjacency.events import (
-    REVIEWER_REQUEST_EVENT,
-    REVIEWER_RESPONSE_EVENT,
-    STIMULUS_EVENT,
-    STIMULUS_RESPONSE_EVENT,
-    ReviewerRequestPayload,
-    StimulusPayload,
+    PROMPT_SUBJECT,
+    REQUEST_REVIEW,
+    REVIEW_RESPONSE,
+    SUBJECT_RESPONSE,
+    PromptSubjectPayload,
+    RequestReviewPayload,
     register_all,
 )
 from adjacency.purposes.participant import ReviewerPurpose, SubjectPurpose
@@ -39,19 +39,19 @@ def setup_events():
 
 @pytest.mark.asyncio
 async def test_subject_purpose_calls_participant_on_stimulus(ttt):
-    """SubjectPurpose delegates to participant.respond() when StimulusEvent received."""
+    """SubjectPurpose delegates to participant.respond() when PromptSubject is received."""
     from adjacency.participants.scripted import ScriptedParticipant
 
     participant = ScriptedParticipant(responses=["The LLM mishandled the tense."])
     subject = SubjectPurpose(participant=participant)
     await ttt.start_purpose(subject)
 
-    stimulus_payload = StimulusPayload(
+    stimulus_payload = PromptSubjectPayload(
         question_key="locus_visible",
         messages=[{"role": "user", "content": "Do you notice..."}],
         response_kind="free_text",
     )
-    event = make_hub_event(STIMULUS_EVENT, stimulus_payload)
+    event = make_hub_event(PROMPT_SUBJECT, stimulus_payload)
     await subject._handle_event(event)
 
     assert participant.call_count == 1
@@ -59,32 +59,32 @@ async def test_subject_purpose_calls_participant_on_stimulus(ttt):
 
 @pytest.mark.asyncio
 async def test_reviewer_purpose_calls_participant_assess_on_request(ttt):
-    """ReviewerPurpose delegates to participant.assess() when ReviewerRequestEvent received."""
+    """ReviewerPurpose delegates to participant.assess() when RequestReview is received."""
     from adjacency.participants.scripted import ScriptedParticipant
 
     participant = ScriptedParticipant(responses=["yes"])
     reviewer = ReviewerPurpose(participant=participant)
     await ttt.start_purpose(reviewer)
 
-    request_payload = ReviewerRequestPayload(
+    request_payload = RequestReviewPayload(
         question_key="locus_visible",
         messages=[{"role": "user", "content": "Did subject identify misalignment?"}],
         canonical_response="The LLM treats future-tense as present-tense",
     )
-    event = make_hub_event(REVIEWER_REQUEST_EVENT, request_payload)
+    event = make_hub_event(REQUEST_REVIEW, request_payload)
     await reviewer._handle_event(event)
 
     assert participant.call_count == 1
 
 
 def test_subject_purpose_may_emit_only_stimulus_response():
-    assert STIMULUS_RESPONSE_EVENT in SubjectPurpose.may_emit
-    assert REVIEWER_RESPONSE_EVENT not in SubjectPurpose.may_emit
+    assert SUBJECT_RESPONSE in SubjectPurpose.may_emit
+    assert REVIEW_RESPONSE not in SubjectPurpose.may_emit
 
 
 def test_reviewer_purpose_may_emit_only_reviewer_response():
-    assert REVIEWER_RESPONSE_EVENT in ReviewerPurpose.may_emit
-    assert STIMULUS_RESPONSE_EVENT not in ReviewerPurpose.may_emit
+    assert REVIEW_RESPONSE in ReviewerPurpose.may_emit
+    assert SUBJECT_RESPONSE not in ReviewerPurpose.may_emit
 
 
 def test_reviewer_purpose_normalizes_yes_escalate():

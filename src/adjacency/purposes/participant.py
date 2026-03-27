@@ -10,16 +10,16 @@ from turnturnturn.base_purpose import BasePurpose
 from turnturnturn.events import HubEvent
 
 from adjacency.events import (
-    REVIEWER_REQUEST_EVENT,
-    REVIEWER_RESPONSE_EVENT,
-    STIMULUS_EVENT,
-    STIMULUS_RESPONSE_EVENT,
-    ReviewerRequestPayload,
-    ReviewerResponseEvent,
-    ReviewerResponsePayload,
-    StimulusPayload,
-    StimulusResponseEvent,
-    StimulusResponsePayload,
+    PROMPT_SUBJECT,
+    REQUEST_REVIEW,
+    REVIEW_RESPONSE,
+    SUBJECT_RESPONSE,
+    PromptSubjectPayload,
+    RequestReviewPayload,
+    ReviewResponse,
+    ReviewResponsePayload,
+    SubjectResponse,
+    SubjectResponsePayload,
 )
 from adjacency.participants.base import Participant
 
@@ -61,12 +61,12 @@ class SubjectPurpose(ParticipantPurpose):
     """Purpose that forwards stimuli to the Subject Participant and emits responses."""
 
     name = "subject"
-    subscribes_to = frozenset({STIMULUS_EVENT})
-    may_emit = frozenset({STIMULUS_RESPONSE_EVENT})
+    subscribes_to = frozenset({PROMPT_SUBJECT})
+    may_emit = frozenset({SUBJECT_RESPONSE})
 
     async def _on_addressed_event(self, event: HubEvent) -> None:
-        """Receive a StimulusEvent, call the participant, and emit a StimulusResponseEvent."""
-        payload = cast(StimulusPayload, event.payload)
+        """Receive a PromptSubject, call the participant, and emit a SubjectResponse."""
+        payload = cast(PromptSubjectPayload, event.payload)
         response_text = await self._participant.respond(
             messages=payload.messages,
             question_key=payload.question_key,
@@ -74,11 +74,11 @@ class SubjectPurpose(ParticipantPurpose):
         updated_messages = list(payload.messages) + [
             {"role": "assistant", "content": response_text}
         ]
-        response_event = StimulusResponseEvent(
+        response_event = SubjectResponse(
             purpose_id=self.id,
             purpose_name=self.name,
             hub_token=self._require_token(),
-            payload=StimulusResponsePayload(
+            payload=SubjectResponsePayload(
                 question_key=payload.question_key,
                 messages=updated_messages,
             ),
@@ -90,8 +90,8 @@ class ReviewerPurpose(ParticipantPurpose):
     """Purpose that forwards reviewer requests to the Reviewer Participant and emits verdicts."""
 
     name = "reviewer"
-    subscribes_to = frozenset({REVIEWER_REQUEST_EVENT})
-    may_emit = frozenset({REVIEWER_RESPONSE_EVENT})
+    subscribes_to = frozenset({REQUEST_REVIEW})
+    may_emit = frozenset({REVIEW_RESPONSE})
 
     @staticmethod
     def _normalize_assessment(verdict: str) -> tuple[Literal["yes", "no"], bool]:
@@ -127,18 +127,18 @@ class ReviewerPurpose(ParticipantPurpose):
 
     async def _on_addressed_event(self, event: HubEvent) -> None:
         """Receive a reviewer request and emit the normalized reviewer response."""
-        payload = cast(ReviewerRequestPayload, event.payload)
+        payload = cast(RequestReviewPayload, event.payload)
         verdict = await self._participant.assess(
             messages=payload.messages,
             question_key=payload.question_key,
             canonical=payload.canonical_response,
         )
         normalized_response, escalate = self._normalize_assessment(verdict)
-        response_event = ReviewerResponseEvent(
+        response_event = ReviewResponse(
             purpose_id=self.id,
             purpose_name=self.name,
             hub_token=self._require_token(),
-            payload=ReviewerResponsePayload(
+            payload=ReviewResponsePayload(
                 question_key=payload.question_key,
                 response=normalized_response,
                 escalate=escalate,

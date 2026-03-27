@@ -3,7 +3,7 @@
 Responsibilities:
   - On explicit start_session(): calls hub.start_turn() to create the
     exhibit CTO.
-  - On ProtocolCompletedEvent: emits end_session to request hub-managed shutdown.
+  - On WorkflowCompleted: emits request_session_end to request hub-managed shutdown.
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ from uuid import UUID, uuid4
 from turnturnturn.base_purpose import SessionOwnerPurpose
 from turnturnturn.events import HubEvent
 
-from adjacency.events import PROTOCOL_COMPLETED_EVENT
+from adjacency.events import WORKFLOW_COMPLETED
 
 
 class AdjacencyPurpose(SessionOwnerPurpose):
@@ -22,7 +22,7 @@ class AdjacencyPurpose(SessionOwnerPurpose):
 
     This is the explicit startup-time session owner for an adjacency-backed
     study. It starts the study CTO only when Session.start() tells it to, and
-    later emits end_session when the protocol is complete.
+    later emits request_session_end when the protocol is complete.
 
     Args:
         content_profile: Profile identifier for the CTO content field.
@@ -47,7 +47,7 @@ class AdjacencyPurpose(SessionOwnerPurpose):
 
     async def _handle_event(self, event: HubEvent) -> None:
         """Dispatch incoming hub events to lifecycle handlers."""
-        if event.event_type == PROTOCOL_COMPLETED_EVENT:
+        if event.event_type == WORKFLOW_COMPLETED:
             await self._on_protocol_completed()
 
     async def start_session(self) -> None:
@@ -68,4 +68,4 @@ class AdjacencyPurpose(SessionOwnerPurpose):
 
     async def _on_protocol_completed(self) -> None:
         """Request hub-managed shutdown once the protocol is complete."""
-        await self.end_session(str(self._session_id))
+        await self.request_session_end(str(self._session_id))

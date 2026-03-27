@@ -20,18 +20,18 @@ def _now_ms() -> int:
 
 
 # Event type string constants
-STIMULUS_EVENT = "adjacency.stimulus"
-STIMULUS_RESPONSE_EVENT = "adjacency.stimulus_response"
-REVIEWER_REQUEST_EVENT = "adjacency.reviewer_request"
-REVIEWER_RESPONSE_EVENT = "adjacency.reviewer_response"
-PROTOCOL_COMPLETED_EVENT = "adjacency.protocol_completed"
+PROMPT_SUBJECT = "adjacency.prompt_subject"
+SUBJECT_RESPONSE = "adjacency.subject_response"
+REQUEST_REVIEW = "adjacency.request_review"
+REVIEW_RESPONSE = "adjacency.review_response"
+WORKFLOW_COMPLETED = "adjacency.workflow_completed"
 
 ALL_EVENT_TYPES = (
-    STIMULUS_EVENT,
-    STIMULUS_RESPONSE_EVENT,
-    REVIEWER_REQUEST_EVENT,
-    REVIEWER_RESPONSE_EVENT,
-    PROTOCOL_COMPLETED_EVENT,
+    PROMPT_SUBJECT,
+    SUBJECT_RESPONSE,
+    REQUEST_REVIEW,
+    REVIEW_RESPONSE,
+    WORKFLOW_COMPLETED,
 )
 
 
@@ -51,8 +51,8 @@ def register_all() -> None:
 
 
 @dataclass(frozen=True)
-class StimulusPayload:
-    """Payload for a stimulus event delivered to the Subject.
+class PromptSubjectPayload:
+    """Payload for a prompt delivered to the Subject.
 
     Attributes:
         question_key: Identifier for the question within the protocol.
@@ -71,7 +71,7 @@ class StimulusPayload:
             Dictionary with _schema, _v (version), and payload fields.
         """
         return {
-            "_schema": "adjacency.stimulus",
+            "_schema": "adjacency.prompt_subject",
             "_v": 1,
             "question_key": self.question_key,
             "messages": self.messages,
@@ -80,8 +80,8 @@ class StimulusPayload:
 
 
 @dataclass(frozen=True)
-class StimulusResponsePayload:
-    """Payload carrying the Subject's response to a stimulus.
+class SubjectResponsePayload:
+    """Payload carrying the Subject's response to a prompt.
 
     Attributes:
         question_key: Identifier for the question.
@@ -98,7 +98,7 @@ class StimulusResponsePayload:
             Dictionary with _schema, _v (version), and payload fields.
         """
         return {
-            "_schema": "adjacency.stimulus_response",
+            "_schema": "adjacency.subject_response",
             "_v": 1,
             "question_key": self.question_key,
             "messages": self.messages,
@@ -106,8 +106,8 @@ class StimulusResponsePayload:
 
 
 @dataclass(frozen=True)
-class ReviewerRequestPayload:
-    """Payload for a reviewer assessment request.
+class RequestReviewPayload:
+    """Payload for a review request.
 
     Attributes:
         question_key: Identifier for the question.
@@ -127,7 +127,7 @@ class ReviewerRequestPayload:
             Dictionary with _schema, _v (version), and payload fields.
         """
         return {
-            "_schema": "adjacency.reviewer_request",
+            "_schema": "adjacency.request_review",
             "_v": 1,
             "question_key": self.question_key,
             "messages": self.messages,
@@ -136,14 +136,14 @@ class ReviewerRequestPayload:
 
 
 @dataclass(frozen=True)
-class ReviewerResponsePayload:
-    """Payload carrying the Reviewer's verdict on a stimulus response.
+class ReviewResponsePayload:
+    """Payload carrying the Reviewer's verdict on a subject response.
 
     Attributes:
         question_key: Identifier for the question.
         response: Reviewer's verdict: "yes" or "no".
         escalate: Whether the reviewer also wants escalation or extra scrutiny.
-        based_on_event_id: Event ID of the stimulus response being reviewed.
+        based_on_event_id: Event ID of the subject response being reviewed.
 
     Raises:
         ValueError: If response is not one of the two allowed values.
@@ -158,7 +158,7 @@ class ReviewerResponsePayload:
         """Validate response field on construction."""
         if self.response not in ("yes", "no"):
             raise ValueError(
-                f"ReviewerResponsePayload.response must be 'yes' or 'no'; "
+                f"ReviewResponsePayload.response must be 'yes' or 'no'; "
                 f"got {self.response!r}"
             )
 
@@ -169,7 +169,7 @@ class ReviewerResponsePayload:
             Dictionary with _schema, _v (version), and payload fields.
         """
         return {
-            "_schema": "adjacency.reviewer_response",
+            "_schema": "adjacency.review_response",
             "_v": 1,
             "question_key": self.question_key,
             "response": self.response,
@@ -179,8 +179,8 @@ class ReviewerResponsePayload:
 
 
 @dataclass(frozen=True)
-class ProtocolCompletedPayload:
-    """Payload emitted when the protocol reaches its terminal state.
+class WorkflowCompletedPayload:
+    """Payload emitted when the workflow reaches its terminal state.
 
     Attributes:
         final_state: The final resolved ladder key.
@@ -197,7 +197,7 @@ class ProtocolCompletedPayload:
             Dictionary with _schema, _v (version), and payload fields.
         """
         return {
-            "_schema": "adjacency.protocol_completed",
+            "_schema": "adjacency.workflow_completed",
             "_v": 1,
             "final_state": self.final_state,
             "session_id": self.session_id,
@@ -216,7 +216,7 @@ def _make_event_class(event_type_const: str) -> type:
     purpose_name, hub_token, payload, event_type, event_id, and created_at_ms.
 
     Args:
-        event_type_const: The event type string constant (e.g., "adjacency.stimulus").
+        event_type_const: The event type string constant (e.g., "adjacency.prompt_subject").
 
     Returns:
         A frozen dataclass type with event_type set to the constant.
@@ -240,17 +240,17 @@ def _make_event_class(event_type_const: str) -> type:
     return _Event
 
 
-#: Event for stimulus delivery to Subject.
-StimulusEvent = _make_event_class(STIMULUS_EVENT)
+#: Custom event for prompt delivery to the subject role.
+PromptSubject = _make_event_class(PROMPT_SUBJECT)
 
-#: Event for Subject's response to stimulus.
-StimulusResponseEvent = _make_event_class(STIMULUS_RESPONSE_EVENT)
+#: Custom event carrying the subject role's response.
+SubjectResponse = _make_event_class(SUBJECT_RESPONSE)
 
-#: Event requesting Reviewer assessment.
-ReviewerRequestEvent = _make_event_class(REVIEWER_REQUEST_EVENT)
+#: Custom event requesting a reviewer verdict.
+RequestReview = _make_event_class(REQUEST_REVIEW)
 
-#: Event carrying Reviewer's response.
-ReviewerResponseEvent = _make_event_class(REVIEWER_RESPONSE_EVENT)
+#: Custom event carrying a reviewer verdict.
+ReviewResponse = _make_event_class(REVIEW_RESPONSE)
 
-#: Event emitted at protocol completion.
-ProtocolCompletedEvent = _make_event_class(PROTOCOL_COMPLETED_EVENT)
+#: Custom event emitted when a workflow reaches terminal state.
+WorkflowCompleted = _make_event_class(WORKFLOW_COMPLETED)

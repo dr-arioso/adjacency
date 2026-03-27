@@ -96,8 +96,8 @@ def test_ladder_state_escalate_verdict_stays_on_step():
 
 @pytest.mark.asyncio
 async def test_socratic_elicitation_runs_one_pair_to_completion(ttt, adjacency_purpose):
-    """Full run: CTO started -> SocraticElicitation drives ladder -> ProtocolCompletedEvent emitted."""
-    from adjacency.events import PROTOCOL_COMPLETED_EVENT, register_all
+    """Full run: CTO started -> SocraticElicitation drives ladder -> WorkflowCompleted emitted."""
+    from adjacency.events import WORKFLOW_COMPLETED, register_all
     from adjacency.participants.scripted import ScriptedParticipant
     from adjacency.purposes.moderator import SocraticElicitationPurpose
     from adjacency.purposes.participant import ReviewerPurpose, SubjectPurpose
@@ -116,7 +116,7 @@ async def test_socratic_elicitation_runs_one_pair_to_completion(ttt, adjacency_p
         id = uuid4()
 
         async def _handle_event(self, event):
-            if event.event_type == PROTOCOL_COMPLETED_EVENT:
+            if event.event_type == WORKFLOW_COMPLETED:
                 completed.append("done")
 
     adjacency_p = adjacency_purpose
@@ -136,4 +136,4 @@ async def test_socratic_elicitation_runs_one_pair_to_completion(ttt, adjacency_p
     await ttt.start_purpose(watcher)
     await adjacency_p.start_session()
 
-    assert len(completed) == 1, "ProtocolCompletedEvent not received"
+    assert len(completed) == 1, "WorkflowCompleted not received"

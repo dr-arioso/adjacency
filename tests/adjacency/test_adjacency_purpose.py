@@ -6,8 +6,8 @@ import pytest
 from turnturnturn.events import HubEventType
 
 from adjacency.events import (
-    ProtocolCompletedEvent,
-    ProtocolCompletedPayload,
+    WorkflowCompleted,
+    WorkflowCompletedPayload,
     register_all,
 )
 from adjacency.purposes.base import AdjacencyPurpose
@@ -37,11 +37,11 @@ async def test_adjacency_purpose_closes_on_protocol_completed(ttt, adjacency_pur
     adjacency_purpose._content = {"dialog": "hello", "trace_pairs": []}
     await adjacency_purpose.start_session()
 
-    completion = ProtocolCompletedEvent(
+    completion = WorkflowCompleted(
         purpose_id=adjacency_purpose.id,
         purpose_name=adjacency_purpose.name,
         hub_token=adjacency_purpose.token,
-        payload=ProtocolCompletedPayload(
+        payload=WorkflowCompletedPayload(
             final_state="mechanism_named",
             session_id=str(uuid4()),
         ),
@@ -50,7 +50,7 @@ async def test_adjacency_purpose_closes_on_protocol_completed(ttt, adjacency_pur
 
     # Check the shutdown path was persisted end-to-end.
     event_types = [e["event_type"] for e in persister.events]
-    assert "end_session" in event_types
+    assert "request_session_end" in event_types
     assert HubEventType.SESSION_CLOSING.value in event_types
     assert "purpose_completed" in event_types
     assert HubEventType.SESSION_CLOSE_PENDING.value in event_types
@@ -71,11 +71,11 @@ async def test_adjacency_purpose_persists_predefined_session_code():
     persister = ttt.persistence_purpose
     await purpose.start_session()
 
-    completion = ProtocolCompletedEvent(
+    completion = WorkflowCompleted(
         purpose_id=purpose.id,
         purpose_name=purpose.name,
         hub_token=purpose.token,
-        payload=ProtocolCompletedPayload(
+        payload=WorkflowCompletedPayload(
             final_state="mechanism_named",
             session_id=str(uuid4()),
         ),
