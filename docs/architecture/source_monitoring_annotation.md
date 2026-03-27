@@ -9,7 +9,8 @@ It demonstrates the intended runtime pattern:
 2. the workflow requests a canonical CTO import from `turnturnturn`
 3. the imported CTO becomes live in the session mesh
 4. the annotator walks the turns in order and writes namespaced deltas
-5. the workflow ends the session after all turns are annotated
+5. the workflow emits `WorkflowCompleted`
+6. the owner handles that completion signal and ends the session
 
 The v1 implementation uses a human backend at the console by default. The
 workflow core stays separate from that interaction style so later frontends

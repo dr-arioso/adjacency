@@ -110,8 +110,12 @@ async def test_source_monitoring_annotation_imports_and_writes_deltas(tmp_path):
     assert "cto_imported" in event_types
     assert "cto_started" in event_types
     assert "delta_merged" in event_types
+    assert "adjacency.workflow_completed" in event_types
     assert "request_session_end" in event_types
     assert "session_completed" in event_types
+    assert event_types.index("adjacency.workflow_completed") < event_types.index(
+        "request_session_end"
+    )
 
     with pytest.raises(HubClosedError):
         await hub.start_purpose(annotator)

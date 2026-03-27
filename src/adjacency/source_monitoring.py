@@ -18,6 +18,12 @@ from turnturnturn.events import (
     PurposeEventType,
 )
 
+from adjacency.events import (
+    WORKFLOW_COMPLETED,
+    WorkflowCompleted,
+    WorkflowCompletedPayload,
+)
+from adjacency.events import register_all as register_events
 from adjacency.profiles import LEXICAL_PROFILE_ID
 from adjacency.profiles import register as register_profiles
 
@@ -119,7 +125,8 @@ class SourceMonitoringAnnotatorPurpose(SessionOwnerPurpose):
         self._session_code = session_code
         self.turn_id: UUID | None = None
         self._requested = False
-        self._completed = False
+        self._annotated = False
+        self._closing_requested = False
 
     @property
     def session_id(self) -> UUID:
@@ -139,23 +146,31 @@ class SourceMonitoringAnnotatorPurpose(SessionOwnerPurpose):
         )
 
     async def _handle_event(self, event: HubEvent) -> None:
-        """Begin annotation when the imported lexical CTO becomes live."""
-        if event.event_type != HubEventType.CTO_STARTED or self._completed:
+        """Drive annotation start and completion handling for this workflow."""
+        if event.event_type == HubEventType.CTO_STARTED and not self._annotated:
+            payload_dict = event.payload.as_dict()
+            cto_index = payload_dict.get("cto_index")
+            if not isinstance(cto_index, dict):
+                return
+            if cto_index.get("session_id") != str(self._session_id):
+                return
+            profile = cto_index.get("content_profile")
+            if not isinstance(profile, dict) or profile.get("id") != LEXICAL_PROFILE_ID:
+                return
+            turn_id = cto_index.get("turn_id")
+            if not isinstance(turn_id, str):
+                return
+            self.turn_id = UUID(turn_id)
+            await self._annotate_live_cto(self.turn_id)
             return
-        payload_dict = event.payload.as_dict()
-        cto_index = payload_dict.get("cto_index")
-        if not isinstance(cto_index, dict):
-            return
-        if cto_index.get("session_id") != str(self._session_id):
-            return
-        profile = cto_index.get("content_profile")
-        if not isinstance(profile, dict) or profile.get("id") != LEXICAL_PROFILE_ID:
-            return
-        turn_id = cto_index.get("turn_id")
-        if not isinstance(turn_id, str):
-            return
-        self.turn_id = UUID(turn_id)
-        await self._annotate_live_cto(self.turn_id)
+
+        if event.event_type == WORKFLOW_COMPLETED and not self._closing_requested:
+            payload_dict = event.payload.as_dict()
+            session_id = payload_dict.get("session_id")
+            if session_id != str(self._session_id):
+                return
+            self._closing_requested = True
+            await self.request_session_end(str(self._session_id))
 
     async def _annotate_live_cto(self, turn_id: UUID) -> None:
         cto = self.hub.librarian.get_cto(turn_id)
@@ -179,8 +194,8 @@ class SourceMonitoringAnnotatorPurpose(SessionOwnerPurpose):
                 selection=normalized,
             )
 
-        self._completed = True
-        await self.request_session_end(str(self._session_id))
+        self._annotated = True
+        await self._emit_workflow_completed(final_state="annotation_completed")
 
     def _normalize_selection(
         self, selection: str, speakers: list[dict[str, Any]]
@@ -230,6 +245,19 @@ class SourceMonitoringAnnotatorPurpose(SessionOwnerPurpose):
         )
         await self.hub.take_turn(event)
 
+    async def _emit_workflow_completed(self, *, final_state: str) -> None:
+        """Emit the standard workflow terminal signal for this session."""
+        event = WorkflowCompleted(
+            purpose_id=self.id,
+            purpose_name=self.name,
+            hub_token=self._require_token(),
+            payload=WorkflowCompletedPayload(
+                final_state=final_state,
+                session_id=str(self._session_id),
+            ),
+        )
+        await self.hub.take_turn(event)
+
 
 @dataclass
 class SourceMonitoringSession:
@@ -238,6 +266,7 @@ class SourceMonitoringSession:
     annotator_purpose: SourceMonitoringAnnotatorPurpose
 
     async def start(self) -> None:
+        register_events()
         register_profiles()
         await self.annotator_purpose.start_session()
 
