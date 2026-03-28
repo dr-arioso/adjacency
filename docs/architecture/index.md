@@ -10,6 +10,7 @@ The stable public shape is intentionally small:
 - participant and backend interfaces
 - the built-in `source_monitoring_annotation` workflow
 - the first web UI and renderer contract for annotation workflows
+- the emerging reusable GUI shell around `FocusedSequenceViewport`
 
 For the lifecycle substrate, provenance rules, and CTO import semantics, see
 the corresponding `turnturnturn` documentation. Adjacency stays focused on
@@ -21,3 +22,13 @@ workflow composition and participant orchestration.
 2. `adjacency` defines reusable workflow roles, protocols, and built-in flows.
 3. higher-level packages can register their own study-specific purposes on top
    of the same substrate without changing the adjacency core.
+
+## GUI Direction
+
+The current GUI work in `adjacency` is aimed at a reusable
+`FocusedSequenceViewport` shell rather than a source-monitoring-only UI.
+
+See:
+
+- [GUI Architecture](gui_architecture.md)
+- [Source Monitoring Web UI](source_monitoring_web_ui.md)

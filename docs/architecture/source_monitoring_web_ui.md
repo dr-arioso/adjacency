@@ -3,6 +3,9 @@
 This document defines the first web UI and renderer contract for
 `source_monitoring_annotation`.
 
+For the broader GUI direction beyond this first workflow-specific surface, see
+[GUI Architecture](gui_architecture.md).
+
 The goals are:
 
 - implement a single-page annotation surface in NiceGUI
