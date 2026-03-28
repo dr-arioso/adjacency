@@ -44,6 +44,7 @@ nav:
       - Overview: architecture/index.md
       - Core Architecture: architecture/core_architecture.md
       - Source Monitoring Workflow: architecture/source_monitoring_annotation.md
+      - Source Monitoring Web UI: architecture/source_monitoring_web_ui.md
   - API Reference:
       - Overview: api/index.md
       - Core: api/core.md

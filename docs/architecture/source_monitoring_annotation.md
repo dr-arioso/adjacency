@@ -19,3 +19,6 @@ can reuse the same session and annotation semantics.
 The important architectural property is that the workflow is turn-oriented,
 not TraceProbe-oriented. It operates on a lexical CTO and a roster of speakers,
 which keeps the implementation reusable for other future workflows.
+
+The first UI/state contract for this workflow is documented separately in
+[Source Monitoring Web UI](source_monitoring_web_ui.md).

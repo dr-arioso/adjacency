@@ -66,11 +66,11 @@ def test_main_bootstraps_source_monitoring_workflow(
             self,
             *,
             source_locator: str,
-            backend: object,
+            renderer: object,
             session_code: str | None = None,
         ) -> None:
             calls["annotator_source_locator"] = source_locator
-            calls["annotator_backend"] = backend
+            calls["annotator_renderer"] = renderer
             calls["annotator_session_code"] = session_code
             self.turn_id = None
 
@@ -92,6 +92,8 @@ def test_main_bootstraps_source_monitoring_workflow(
     monkeypatch.setattr(
         cli, "TTT", type("DummyTTT", (), {"start": staticmethod(fake_start)})
     )
+    dummy_renderer = type("DummyRenderer", (), {"url": "http://127.0.0.1:8123/"})()
+    monkeypatch.setattr(cli, "build_source_monitoring_renderer", lambda: dummy_renderer)
     monkeypatch.setattr(cli, "SourceMonitoringAnnotatorPurpose", DummyAnnotator)
     monkeypatch.setattr(
         cli, "assemble_source_monitoring_session", fake_assemble_session
@@ -114,6 +116,7 @@ def test_main_bootstraps_source_monitoring_workflow(
     assert calls["backend_config_path"] == Path("events.jsonl")
     assert calls["annotator_source_locator"] == str(cto_path)
     assert calls["annotator_session_code"] == "SMA-01"
+    assert calls["annotator_renderer"] is dummy_renderer
     assert calls["session_started"] is True
     captured = capsys.readouterr()
-    assert captured.out == ""
+    assert "Source monitoring UI: http://127.0.0.1:8123/" in captured.out

@@ -9,6 +9,7 @@ The stable public shape is intentionally small:
 - session assembly helpers and workflow purpose types
 - participant and backend interfaces
 - the built-in `source_monitoring_annotation` workflow
+- the first web UI and renderer contract for annotation workflows
 
 For the lifecycle substrate, provenance rules, and CTO import semantics, see
 the corresponding `turnturnturn` documentation. Adjacency stays focused on

@@ -14,10 +14,10 @@ from turnturnturn import (
 )
 
 from adjacency.source_monitoring import (
-    ConsoleSourceMonitoringBackend,
     SourceMonitoringAnnotatorPurpose,
     assemble_source_monitoring_session,
 )
+from adjacency.source_monitoring_web import NiceGuiSourceMonitoringRenderer
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -64,18 +64,26 @@ async def _run(args: argparse.Namespace) -> None:
     archivist = Archivist(
         backends=[(jsonl_config, JsonlArchivistBackend(jsonl_config))]
     )
+    renderer = build_source_monitoring_renderer()
     annotator = SourceMonitoringAnnotatorPurpose(
         source_locator=args.cto_import,
-        backend=ConsoleSourceMonitoringBackend(),
+        renderer=renderer,
         session_code=args.session_code,
     )
     hub = TTT.start(archivist, annotator)
     session = assemble_source_monitoring_session(annotator)
+    if hasattr(renderer, "url"):
+        print(f"Source monitoring UI: {renderer.url}")
     await session.start()
     if annotator.turn_id is not None:
         cto = hub.librarian.get_cto(annotator.turn_id)
         if cto is not None:
             print(f"Annotated {len(cto.content['turns'])} turns.")
+
+
+def build_source_monitoring_renderer() -> NiceGuiSourceMonitoringRenderer:
+    """Return the default local-human source monitoring renderer."""
+    return NiceGuiSourceMonitoringRenderer()
 
 
 if __name__ == "__main__":
