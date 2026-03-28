@@ -102,11 +102,11 @@ class InterfaceAffordances:
     shortcut_hints: dict[str, str] = field(
         default_factory=lambda: {
             "leave_blank": "Space",
-            "unknown": "U",
-            "request_review": "R",
+            "unknown": "u",
+            "request_review": "r",
             "submit": "Ctrl+Enter",
-            "navigate_up": "Up",
-            "navigate_down": "Down",
+            "navigate_up": "up",
+            "navigate_down": "down",
         }
     )
 

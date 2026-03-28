@@ -99,10 +99,16 @@ class NiceGuiSourceMonitoringRenderer(
         @ui.page(self.route)
         def source_monitoring_page() -> None:
             refs = self._build_page(ui)
+            loading_state = {"shown": False}
+            last_rendered: dict[str, SourceMonitoringRenderRequest | None] = {
+                "snapshot": None
+            }
 
             def refresh() -> None:
                 snapshot = self._snapshot_copy()
                 if snapshot is None:
+                    if loading_state["shown"]:
+                        return
                     refs.header.text = "Waiting for imported CTO content..."
                     refs.progress.text = ""
                     refs.footer.text = "Loading source monitoring session..."
@@ -114,8 +120,14 @@ class NiceGuiSourceMonitoringRenderer(
                     refs.active_card.clear()
                     with refs.active_card:
                         ui.spinner(size="lg")
+                    loading_state["shown"] = True
+                    last_rendered["snapshot"] = None
+                    return
+                if snapshot == last_rendered["snapshot"]:
                     return
                 self._refresh_page(ui, refs, snapshot)
+                last_rendered["snapshot"] = snapshot
+                loading_state["shown"] = False
 
             ui.timer(self.refresh_seconds, refresh)
             ui.keyboard(on_key=self._handle_key)
@@ -219,7 +231,7 @@ class NiceGuiSourceMonitoringRenderer(
                     if not active_item.selection_editable:
                         button.disable()
                 unknown_button = ui.button(
-                    f"{snapshot.affordances.control_labels['unknown']} [U]",
+                    f"{snapshot.affordances.control_labels['unknown']} [u]",
                     on_click=lambda: self._enqueue("select_unknown"),
                 )
                 if not active_item.selection_editable:
@@ -231,18 +243,20 @@ class NiceGuiSourceMonitoringRenderer(
                 )
                 if not active_item.selection_editable:
                     blank_button.disable()
-                review_button = ui.button(
-                    f"{snapshot.affordances.control_labels['request_review']} [R]",
-                    on_click=lambda: self._enqueue("toggle_request_review"),
+                review_checkbox = ui.checkbox(
+                    f"{snapshot.affordances.control_labels['request_review']} [r]",
+                    value=active_item.request_review,
+                    on_change=lambda event, current=active_item.request_review: self._handle_review_change(
+                        event, current
+                    ),
                 )
                 if not active_item.request_review_editable:
-                    review_button.disable()
+                    review_checkbox.disable()
                 ui.button(
                     f"{snapshot.affordances.control_labels['submit']} [Ctrl+Enter]",
                     on_click=lambda: self._enqueue("submit_annotation"),
                 )
             ui.label(f"Current selection: {active_item.current_selection or '<blank>'}")
-            ui.label(f"Request review: {'yes' if active_item.request_review else 'no'}")
 
         refs.history_panel.clear()
         with refs.history_panel:
@@ -265,7 +279,13 @@ class NiceGuiSourceMonitoringRenderer(
         if snapshot is None or not getattr(event.action, "keydown", False):
             return
         active = snapshot.transcript.items[snapshot.transcript.active_index]
-        key = getattr(event, "key", "").lower()
+        keyboard_key = getattr(event, "key", None)
+        key_name = getattr(keyboard_key, "name", keyboard_key)
+        key = str(key_name).lower()
+        modifiers = {
+            str(getattr(modifier, "name", modifier)).lower()
+            for modifier in getattr(event, "modifiers", [])
+        }
         if key == "r":
             self._enqueue("toggle_request_review")
             return
@@ -281,10 +301,9 @@ class NiceGuiSourceMonitoringRenderer(
         if key == " ":
             self._enqueue("leave_blank")
             return
-        if key == "enter" and getattr(event, "modifiers", None):
-            if "Control" in getattr(event, "modifiers", []):
-                self._enqueue("submit_annotation")
-                return
+        if key == "enter" and ("control" in modifiers or "ctrl" in modifiers):
+            self._enqueue("submit_annotation")
+            return
         for entry in snapshot.instructions.speaker_shortcuts:
             if key == entry.shortcut.lower():
                 self._enqueue(
@@ -319,3 +338,10 @@ class NiceGuiSourceMonitoringRenderer(
                 kind=kind, source_turn_id=source_turn_id, selection=selection
             )
         )
+
+    def _handle_review_change(self, event: Any, current_value: bool) -> None:
+        """Translate checkbox changes into the toggle-based controller intent."""
+        desired_value = bool(getattr(event, "value", current_value))
+        if desired_value == current_value:
+            return
+        self._enqueue("toggle_request_review")
